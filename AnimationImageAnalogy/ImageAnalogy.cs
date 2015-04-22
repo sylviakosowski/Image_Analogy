@@ -21,6 +21,34 @@ namespace AnimationImageAnalogy
             this.imageA2 = imageA2;
         }
 
+        /* Compute patch value
+         * patchLocA is the top left corner of the patch in A
+         * patchLocB is the top left corner of the patch in B
+         */
+        private int ComputePatchValue(Color[,] imageA, Color[,] imageB, 
+            Tuple <int,int> patchLocA, Tuple<int,int> patchLocB)
+        {
+            int patchValue = 0;
+            for (int i = 0; i < patchDimension; i++) 
+            {
+                for (int j = 0; j < patchDimension; j++)
+                {
+                    //Compute sum of squared differences for each pixel in patch
+                    Color a = imageA[patchLocA.Item1+i, patchLocA.Item2+j];
+                    Color b = imageB[patchLocB.Item1+i, patchLocB.Item2+j];
+
+                    int ssd = (int)( Math.Pow((a.A - b.A), 2) + Math.Pow((a.R - b.R), 2)
+                        + Math.Pow((a.G - b.G), 2) + Math.Pow((a.B - b.B), 2));
+
+                    //Add together all of the ssd's into one final value representing the patch
+                    patchValue += ssd;
+
+                }
+            }
+            return patchValue;
+        }
+
+
         /* Returns pixel at the top left corner of the patch in A1 which is the closest match
          * to the current patch in B1. */
         private Tuple<int,int> BestPatchMatch(Color[,] imageB1, Tuple<int,int> patchB1)
