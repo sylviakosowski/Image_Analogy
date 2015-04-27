@@ -89,12 +89,22 @@ namespace AnimationImageAnalogy
          */
         private Color[,] copyPatch(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
         {
-            for(int i = patchA.Item1; i < i+patchDimension; i++)
+            /* Calculate bounds of patch */
+            int beginX = patchA.Item1;
+            int endX = beginX + patchDimension - 1;
+            int beginY = patchA.Item2;
+            int endY = beginY + patchDimension - 1;
+
+            int currentBX = bX;
+            int currentBY = bY;
+
+            for(int i = beginX; i < endX; i++)
             {
-                for (int j = patchA.Item2; j < j+patchDimension; j++)
+                currentBY = bY;
+                for (int j = beginY; j < endY; j++)
                 {
                     imageB2[bX, bY] = imageA2[i, j];
-                    bY++;
+                    currentBY++;
                 }
                 bX++;
             }
