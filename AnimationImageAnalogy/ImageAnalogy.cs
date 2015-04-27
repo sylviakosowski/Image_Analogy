@@ -27,7 +27,7 @@ namespace AnimationImageAnalogy
          * patchLocB is the top left corner of the patch in B
          */
         private int ComputePatchValue(Color[,] imageA, Color[,] imageB, 
-            Tuple <int,int> patchLocA, Tuple<int,int> patchLocB)
+            Tuple <int,int> patchLocA, int bX, int bY)
         {
             int patchValue = 0;
             for (int i = 0; i < patchDimension; i++) 
@@ -36,7 +36,7 @@ namespace AnimationImageAnalogy
                 {
                     //Compute sum of squared differences for each pixel in patch
                     Color a = imageA[patchLocA.Item1+i, patchLocA.Item2+j];
-                    Color b = imageB[patchLocB.Item1+i, patchLocB.Item2+j];
+                    Color b = imageB[bX+i, bY+j];
 
                     int ssd = (int)( Math.Pow((a.A - b.A), 2) + Math.Pow((a.R - b.R), 2)
                         + Math.Pow((a.G - b.G), 2) + Math.Pow((a.B - b.B), 2));
@@ -71,7 +71,7 @@ namespace AnimationImageAnalogy
                 for (int j = 0; j < height; j += patchDimension)
                 {
                     Tuple<int,int> currentPatchA1 = new Tuple<int,int>(i,j);
-                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, patchB1);
+                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY);
                     if (currentPatchVal < bestPatchVal)
                     {
                         bestPatchVal = currentPatchVal;
@@ -87,17 +87,18 @@ namespace AnimationImageAnalogy
         /* Copies the patch with top left corner at indices designated by patchA from imageA2 to 
          * the patch with top left corner at indices bX, bY in imageB2.
          */
-        private void copyPatch(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
+        private Color[,] copyPatch(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
         {
-            for(int i = patchA.Item1; i < patchDimension; i++)
+            for(int i = patchA.Item1; i < i+patchDimension; i++)
             {
-                for (int j = patchA.Item2; j < patchDimension; j++)
+                for (int j = patchA.Item2; j < j+patchDimension; j++)
                 {
                     imageB2[bX, bY] = imageA2[i, j];
                     bY++;
                 }
                 bX++;
             }
+            return imageB2;
         }
 
         /* 
@@ -114,7 +115,12 @@ namespace AnimationImageAnalogy
             for (int i = 0; i < width; i += patchDimension){
                 for (int j = 0; j < height; j += patchDimension) {
                     bestMatch = BestPatchMatch(imageB1, i, j);
-                    copyPatch(imageA2, imageB2, bestMatch, i, j);
+                    imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
+                    Console.WriteLine("Current patch index: " + i + ", " + j);
+                }
+                if (i > 20)
+                {
+                    break;
                 }
             }
 

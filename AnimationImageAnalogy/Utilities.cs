@@ -46,7 +46,8 @@ namespace AnimationImageAnalogy
                     }
                 }
 
-                bmp.Save("TestImages/testOutput", ImageFormat.Png);
+                Console.WriteLine("Saving image");
+                bmp.Save("TestImages/testOutput.png", ImageFormat.Png);
             }
 
 
