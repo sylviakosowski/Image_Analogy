@@ -19,6 +19,7 @@ namespace AnimationImageAnalogy
         {
             this.imageA1 = imageA1;
             this.imageA2 = imageA2;
+            this.patchDimension = patchDimension;
         }
 
         /* Compute patch value
@@ -53,11 +54,34 @@ namespace AnimationImageAnalogy
          * to the current patch in B1. */
         private Tuple<int,int> BestPatchMatch(Color[,] imageB1, Tuple<int,int> patchB1)
         {
-            Tuple<int, int> bestPatchCoord = null;
+            int width = imageA1.GetLength(0);
+            int height = imageA1.GetLength(1);
 
+            //Keeps track of coordinates and values for the best patch we've found so far
+            Tuple<int, int> bestPatchA1 = null;
+            //we are looking for the smallest patchval, so set to max int as default
+            int bestPatchVal = Int32.MaxValue; 
 
+            //Keeps track of the current patch value in the patch we're iterating on
+            int currentPatchVal = 0;
 
-            return bestPatchCoord;
+            //Iterate through A1 to find the closest match for this patch in B1
+            for (int i = 0; i < width; i += patchDimension)
+            {
+                for (int j = 0; j < height; j += patchDimension)
+                {
+                    Tuple<int,int> currentPatchA1 = new Tuple<int,int>(i,j);
+                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, patchB1);
+                    if (currentPatchVal < bestPatchVal)
+                    {
+                        bestPatchVal = currentPatchVal;
+                        bestPatchA1 = currentPatchA1;
+                    }
+                    
+                }
+            }
+
+            return bestPatchA1;
         }
 
         /* 
@@ -72,7 +96,6 @@ namespace AnimationImageAnalogy
             /*Iterate through patches finding a best match for each */
             for (int i = 0; i < width; i += patchDimension){
                 for (int j = 0; j < height; j += patchDimension) {
-                    
                     
                 }
             }
