@@ -106,7 +106,7 @@ namespace AnimationImageAnalogy
                     imageB2[currentBX, currentBY] = imageA2[i, j];
                     currentBY++;
                 }
-                bX++;
+                currentBX++;
             }
             return imageB2;
         }
