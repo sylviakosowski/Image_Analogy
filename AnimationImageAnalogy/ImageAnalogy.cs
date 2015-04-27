@@ -52,7 +52,7 @@ namespace AnimationImageAnalogy
 
         /* Returns pixel at the top left corner of the patch in A1 which is the closest match
          * to the current patch in B1. */
-        private Tuple<int,int> BestPatchMatch(Color[,] imageB1, Tuple<int,int> patchB1)
+        private Tuple<int,int> BestPatchMatch(Color[,] imageB1, int bX, int bY)
         {
             int width = imageA1.GetLength(0);
             int height = imageA1.GetLength(1);
@@ -84,6 +84,22 @@ namespace AnimationImageAnalogy
             return bestPatchA1;
         }
 
+        /* Copies the patch with top left corner at indices designated by patchA from imageA2 to 
+         * the patch with top left corner at indices bX, bY in imageB2.
+         */
+        private void copyPatch(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
+        {
+            for(int i = patchA.Item1; i < patchDimension; i++)
+            {
+                for (int j = patchA.Item2; j < patchDimension; j++)
+                {
+                    imageB2[bX, bY] = imageA2[i, j];
+                    bY++;
+                }
+                bX++;
+            }
+        }
+
         /* 
          * Create an image analogy for the given image using the source pair.
          */
@@ -93,10 +109,12 @@ namespace AnimationImageAnalogy
             int height = imageB1.GetLength(1);
             Color[,] imageB2 = new Color[width, height];
 
+            Tuple<int, int> bestMatch = null;
             /*Iterate through patches finding a best match for each */
             for (int i = 0; i < width; i += patchDimension){
                 for (int j = 0; j < height; j += patchDimension) {
-                    
+                    bestMatch = BestPatchMatch(imageB1, i, j);
+                    copyPatch(imageA2, imageB2, bestMatch, i, j);
                 }
             }
 

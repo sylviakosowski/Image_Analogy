@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace AnimationImageAnalogy
 {
@@ -30,6 +31,25 @@ namespace AnimationImageAnalogy
             } 
 
             return image;         
+        }
+
+        /*Given an array of colors, create an image file*/
+        public static void createFileFromImageArray(Color[,] image)
+        {
+            using (Bitmap bmp = new Bitmap(image.GetLength(0), image.GetLength(1)))
+            {
+                for (int i = 0; i < bmp.Width; i++)
+                {
+                    for(int j = 0; j < bmp.Height; j++)
+                    {
+                        bmp.SetPixel(i,j, image[i,j]);
+                    }
+                }
+
+                bmp.Save("TestImages/testOutput", ImageFormat.Png);
+            }
+
+
         }
 
     }
