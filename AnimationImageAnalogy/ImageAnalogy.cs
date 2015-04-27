@@ -91,9 +91,9 @@ namespace AnimationImageAnalogy
         {
             /* Calculate bounds of patch */
             int beginX = patchA.Item1;
-            int endX = beginX + patchDimension - 1;
+            int endX = beginX + patchDimension;
             int beginY = patchA.Item2;
-            int endY = beginY + patchDimension - 1;
+            int endY = beginY + patchDimension;
 
             int currentBX = bX;
             int currentBY = bY;
@@ -126,11 +126,7 @@ namespace AnimationImageAnalogy
                 for (int j = 0; j < height; j += patchDimension) {
                     bestMatch = BestPatchMatch(imageB1, i, j);
                     imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
-                    Console.WriteLine("Current patch index: " + i + ", " + j);
-                }
-                if (i > 20)
-                {
-                    break;
+                    //Console.WriteLine("Current patch index: " + i + ", " + j);
                 }
             }
 
