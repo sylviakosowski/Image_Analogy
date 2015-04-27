@@ -103,7 +103,7 @@ namespace AnimationImageAnalogy
                 currentBY = bY;
                 for (int j = beginY; j < endY; j++)
                 {
-                    imageB2[bX, bY] = imageA2[i, j];
+                    imageB2[currentBX, currentBY] = imageA2[i, j];
                     currentBY++;
                 }
                 bX++;
