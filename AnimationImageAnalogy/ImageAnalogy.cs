@@ -12,27 +12,34 @@ namespace AnimationImageAnalogy
         /* Source pair */
         private Color[,] imageA1;
         private Color[,] imageA2;
+
+        /* Determines the pixel dimension of the patches we are iterating by */
         private int patchDimension;
 
+        /* Determines number of pixels we iterate by each time */
+        private int patchIter;
+
         /* Constructor */
-        public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension) 
+        public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension, int patchIter) 
         {
             this.imageA1 = imageA1;
             this.imageA2 = imageA2;
             this.patchDimension = patchDimension;
+            this.patchIter = patchIter;
         }
+
 
         /* Compute patch value
          * patchLocA is the top left corner of the patch in A
          * patchLocB is the top left corner of the patch in B
          */
         private int ComputePatchValue(Color[,] imageA, Color[,] imageB, 
-            Tuple <int,int> patchLocA, int bX, int bY)
+            Tuple <int,int> patchLocA, int bX, int bY, int patchXSize, int patchYSize)
         {
             int patchValue = 0;
-            for (int i = 0; i < patchDimension; i++) 
+            for (int i = 0; i < patchXSize; i++) 
             {
-                for (int j = 0; j < patchDimension; j++)
+                for (int j = 0; j < patchYSize; j++)
                 {
                     //Compute sum of squared differences for each pixel in patch
                     Color a = imageA[patchLocA.Item1+i, patchLocA.Item2+j];
@@ -71,7 +78,9 @@ namespace AnimationImageAnalogy
                 for (int j = 0; j < height; j += patchDimension)
                 {
                     Tuple<int,int> currentPatchA1 = new Tuple<int,int>(i,j);
-                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY);
+                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY, 
+                        patchDimension, patchDimension);
+
                     if (currentPatchVal < bestPatchVal)
                     {
                         bestPatchVal = currentPatchVal;
@@ -85,7 +94,8 @@ namespace AnimationImageAnalogy
         }
 
         /* Copies the patch with top left corner at indices designated by patchA from imageA2 to 
-         * the patch with top left corner at indices bX, bY in imageB2.
+         * the patch with top left corner at indices bX, bY in imageB2. The patches should overlap,
+         * so compute Dijkstra's algorithm to resolve the overlap.
          */
         private Color[,] copyPatch(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
         {
