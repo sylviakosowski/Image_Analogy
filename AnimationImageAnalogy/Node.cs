@@ -15,14 +15,19 @@ namespace AnimationImageAnalogy
 
         public Color diff; //The color difference at this node location
 
+        public int distance; //used in dijkstra's
+        public bool visited;
+
         //Adjacency list, stores the neighbor nodes of this pixel along with its edge weight
-        List<Tuple<Node,int>> neighbors; 
+        public List<Tuple<Node,int>> neighbors; 
 
         public Node(int x, int y, Color diff)
         {
             this.x = x;
             this.y = y;
             this.diff = diff;
+            tentativeDistance = Int32.MaxValue;
+            visited = false;
             neighbors = new List<Tuple<Node,int>>();
         }
 

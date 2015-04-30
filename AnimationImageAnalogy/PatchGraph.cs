@@ -14,12 +14,15 @@ namespace AnimationImageAnalogy
 
         Node[,] graph;
 
+        public Queue<Tuple<int,int>> shortestPath;
+
         public PatchGraph(int patchDimension, int patchIter)
         {
             this.patchDimension = patchDimension;
             this.patchIter = patchIter;
 
             graph = null;
+            shortestPath = new Queue<Tuple<int, int>>();
         }
 
         /* TODO: CLEAN UP THIS FUNCTION BETTER */
@@ -122,9 +125,65 @@ namespace AnimationImageAnalogy
 
         }
 
+        private void dijkstra(Node current, Node end)
+        {
+            Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
+            shortestPath.Enqueue(pos);
+
+            if (current.x == end.x && current.y == end.y)
+            {
+                //Destination node is visited
+                current.visited = true;
+                return;
+            }
+
+            Tuple<Node, int> smallestDistNode = null;
+
+            foreach (Tuple<Node, int> n in current.neighbors)
+            {
+                //Only do the stuff if the node is unvisited
+                if (n.Item1.visited == false)
+                {
+                    //Calculate tentative distance for this node
+                    int tentativeDistance = current.distance + n.Item2;
+
+                    if (n.Item1.distance > tentativeDistance)
+                    {
+                        n.Item1.distance = tentativeDistance;
+
+                        //Check if this is now the node with the smallest distance an update accordingly
+                        if (smallestDistNode == null)
+                        {
+                            smallestDistNode = n;
+                        }
+                        else
+                        {
+                            if (smallestDistNode.Item1.distance > tentativeDistance)
+                            {
+                                smallestDistNode = n;
+                            }
+                        }
+                    }
+                }
+            }
+
+            //we're done calculating tentative distances for all neighbors of this node, so mark as visited
+            current.visited = true;
+
+            if(smallestDistNode == null){
+                //we should never get here because we're not doing a complete traversal
+                //but just in case
+                return;
+            }
+            dijkstra(smallestDistNode.Item1, end);
+        }
+
         public void findShortestPath(Node start, Node end)
         {
+            start.distance = 0;
+            start.visited = true;
 
+            dijkstra(start,end);
         }
 
     }
