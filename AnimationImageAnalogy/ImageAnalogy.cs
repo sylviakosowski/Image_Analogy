@@ -229,7 +229,7 @@ namespace AnimationImageAnalogy
             pg.findShortestPath(start, end);
             Queue<Tuple<int,int>> shortestPath = pg.shortestPath;
 
-            Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
+            //Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
             
             //Loop through the patches. Depending on which side of the
             //path the pixel is on, choose to keep either the color value
@@ -261,7 +261,7 @@ namespace AnimationImageAnalogy
                     {
                         pathNode = shortestPath.Dequeue();
                     }
-                    Console.WriteLine(pathNode.Item2);
+                    //Console.WriteLine(pathNode.Item2);
                 }
             }
             return imageB2;
@@ -288,6 +288,12 @@ namespace AnimationImageAnalogy
                 {
                     break;
                 }
+
+                if( i > 5)
+                {
+                    break;
+                }
+
                 for (int j = 0; j < height; j += patchIter)
                 {
                     if(j + patchDimension >= height)
@@ -310,6 +316,7 @@ namespace AnimationImageAnalogy
                     imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j);
 
                     Console.WriteLine("Current patch index: " + i + ", " + j);
+                    
                 }
 
             }

@@ -12,16 +12,16 @@ namespace AnimationImageAnalogy
         static void Main(string[] args)
         {
             /* The source image pair */
-            Color[,] imageA1 = Utilities.createImageArrayFromFile("TestImages/imageA1.png");
-            Color[,] imageA2 = Utilities.createImageArrayFromFile("TestImages/imageA2.png");
+            Color[,] imageA1 = Utilities.createImageArrayFromFile("TestImages/imageA1-small.png");
+            Color[,] imageA2 = Utilities.createImageArrayFromFile("TestImages/imageA2-small.png");
 
             /* Image we want to generate a pair out of*/
-            Color[,] imageB1 = Utilities.createImageArrayFromFile("TestImages/imageB1.png");
+            Color[,] imageB1 = Utilities.createImageArrayFromFile("TestImages/imageB1-small.png");
 
-            ImageAnalogy ia = new ImageAnalogy(imageA1, imageA2, 5, 2);
+            ImageAnalogy ia = new ImageAnalogy(imageA1, imageA2, 5, 3);
 
             Color[,] imageB2 = ia.CreateImageAnalogy(imageB1);
-            Utilities.createFileFromImageArray(imageB2, "TestImages/testOutputRiver.png");
+            Utilities.createFileFromImageArray(imageB2, "TestImages/testOutputRiver-small.png");
 
             Console.ReadLine();
         }

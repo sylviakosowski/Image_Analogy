@@ -55,8 +55,8 @@ namespace AnimationImageAnalogy
             int bxStart = patchB.Item1;
             int byStart = patchB.Item2;
 
-            Console.WriteLine(axStart);
-            Console.WriteLine(ayStart);
+            //Console.WriteLine(axStart);
+            //Console.WriteLine(ayStart);
 
             //Iterate through the graph, initializing the nodes
             for(int i = 0; i < xOverlap; i++)
@@ -64,6 +64,20 @@ namespace AnimationImageAnalogy
                 for(int j = 0; j < yOverlap; j++)
                 {
                     //Compute difference between each pixel in the overlap
+
+                    //Console.WriteLine(bxStart+patchIter+i);
+                    //Console.WriteLine(byStart+patchIter+j);
+
+                    bool test1 = outOfBounds(axStart + i, 0, imageA2.GetLength(0));
+                    bool test2 = outOfBounds(ayStart + j, 0, imageA2.GetLength(1));
+                    bool test3 = outOfBounds(bxStart + patchIter + i, 0, imageB2.GetLength(0));
+                    bool test4 = outOfBounds(byStart + patchIter + j, 0, imageA2.GetLength(1));
+                    if (test1 || test2 || test3 || test4)
+                    {
+                        Console.WriteLine("sup");
+                        break;
+                    }
+
                     Color a = imageA2[axStart+i,ayStart+j];
                     Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
 
@@ -81,6 +95,11 @@ namespace AnimationImageAnalogy
             }
         }
 
+        private bool outOfBounds(int index, int min, int max)
+        {
+            return index < min || index >= max;
+        }
+
 
         /* Initialize the graph with the neighbors of each pixel. The edge between each
          * pixel and its neighbor is weighted according to the sum of squared differences
@@ -92,8 +111,8 @@ namespace AnimationImageAnalogy
             int xBound = graph.GetLength(0);
             int yBound = graph.GetLength(1);
 
-            Console.WriteLine("xBound:" + xBound);
-            Console.WriteLine("yBound:" + yBound);
+            //Console.WriteLine("xBound:" + xBound);
+            //Console.WriteLine("yBound:" + yBound);
 
             for (int i = 0; i < xBound; i++ )
             {
@@ -102,6 +121,10 @@ namespace AnimationImageAnalogy
                     Color currentDiff = graph[i,j].diff;
                     if (i - 1 >= 0)
                     {
+                        if (graph[i - 1,j] == null)
+                        {
+                            break;
+                        }
                         //There is a neighbor to the left
                         Color neighborDiff = graph[i-1, j].diff;
                         int ssd = (int)( Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
@@ -112,6 +135,10 @@ namespace AnimationImageAnalogy
 
                     if (i + 1 < xBound)
                     {
+                        if (graph[i + 1,j] == null)
+                        {
+                            break;
+                        }
                         //There is a neighbor to the right
                         Color neighborDiff = graph[i + 1, j].diff;
                         int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
@@ -122,6 +149,10 @@ namespace AnimationImageAnalogy
 
                     if (j - 1 >= 0)
                     {
+                        if (graph[i, j - 1] == null)
+                        {
+                            break;
+                        }
                         //There is a neighbor to the top
                         Color neighborDiff = graph[i, j-1].diff;
                         int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
@@ -133,6 +164,12 @@ namespace AnimationImageAnalogy
                     if (j + 1 < yBound)
                     {
                         //There is a neighbor to the bottom
+                        //Console.WriteLine(i);
+                        //Console.WriteLine(j + 1);
+                        if(graph[i,j+1] == null)
+                        {
+                            break;
+                        }
                         Color neighborDiff = graph[i, j+1].diff;
                         int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
                         + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
@@ -140,7 +177,7 @@ namespace AnimationImageAnalogy
                         graph[i, j].addNeighbor(graph[i, j+1], ssd);
                     }
 
-                    Console.WriteLine("NEIGHBORS COUNT:" + graph[i, j].neighbors.Count);
+                    //Console.WriteLine("NEIGHBORS COUNT:" + graph[i, j].neighbors.Count);
                 }
             }
 
@@ -151,7 +188,7 @@ namespace AnimationImageAnalogy
         {
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
             shortestPath.Enqueue(pos);
-            Console.WriteLine(pos);
+            //Console.WriteLine(pos);
 
             if (current.x == end.x && current.y == end.y)
             {
@@ -164,8 +201,8 @@ namespace AnimationImageAnalogy
 
             foreach (Tuple<Node, int> n in current.neighbors)
             {
-                //Only do the stuff if the node is unvisited
-                if (n.Item1.visited == false)
+                //Only do the stuff if the node is unvisited and on the next level of pixels (dont backtrack)
+                if (n.Item1.visited == false && n.Item1.y >= current.y)
                 {
                     //Calculate tentative distance for this node
                     int tentativeDistance = current.distance + n.Item2;
