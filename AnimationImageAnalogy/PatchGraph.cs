@@ -66,7 +66,13 @@ namespace AnimationImageAnalogy
                     //Compute difference between each pixel in the overlap
                     Color a = imageA2[axStart+i,ayStart+j];
                     Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
-                    Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
+
+                    int aVal = a.A - b.A > 0 ? a.A - b.A : 0;
+                    int rVal = a.R - b.R > 0 ? a.R - b.R : 0;
+                    int gVal = a.G - b.G > 0 ? a.G - b.G : 0;
+                    int bVal = a.B - b.B > 0 ? a.B - b.B : 0;
+                    Color diff = Color.FromArgb(aVal, rVal, gVal, bVal);
+                    //Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
 
                     //Create a new node initialied with everything but the neighbors
                     Node newNode = new Node(i, j, diff);
