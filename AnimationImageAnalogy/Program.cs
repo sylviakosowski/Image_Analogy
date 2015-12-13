@@ -21,7 +21,7 @@ namespace AnimationImageAnalogy
             ImageAnalogy ia = new ImageAnalogy(imageA1, imageA2, 5, 3);
 
             Color[,] imageB2 = ia.CreateImageAnalogy(imageB1);
-            Utilities.createFileFromImageArray(imageB2, "TestImages/testOutputRiver6.png");
+            Utilities.createFileFromImageArray(imageB2, "TestImages/testOutputRiver8.png");
 
             Console.ReadLine();
         }

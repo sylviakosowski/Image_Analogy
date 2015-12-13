@@ -29,13 +29,13 @@ namespace AnimationImageAnalogy
          * between the pixel components of the existing patch from B2 and the new patch from
          * A2. Edges are weighted with the sum of squared differences between adjacent pixels. */
         public void createGraph(Color[,] imageB2, Color[,] imageA2,
-            Tuple<int,int> patchB, Tuple<int,int> patchA, int overlapDimension)
+            Tuple<int,int> patchB, Tuple<int,int> patchA, bool horizontal)
         {
             /* Calculate how wide and tall the overlap is. */
             int xOverlap;
             int yOverlap;
 
-            if(overlapDimension == 0)
+            if(horizontal)
             {
                 //We are performing dijkstra's for horizontal overlap.
                 xOverlap = patchDimension - patchIter;
@@ -184,7 +184,7 @@ namespace AnimationImageAnalogy
         }
 
         /* Helper function for findShortestPath, performs Dijkstra's algorithm */
-        private void dijkstra(Node current, Node end)
+        private void dijkstra(Node current, Node end, bool horizontal)
         {
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
             shortestPath.Enqueue(pos);
@@ -202,7 +202,20 @@ namespace AnimationImageAnalogy
             foreach (Tuple<Node, int> n in current.neighbors)
             {
                 //Only do the stuff if the node is unvisited and on the next level of pixels (dont backtrack)
-                if (n.Item1.visited == false && n.Item1.y >= current.y)
+                int nextLevel;
+                int currentLevel;
+                if(horizontal)
+                {
+                    //Horizontal dijkstra
+                    nextLevel = n.Item1.y;
+                    currentLevel = current.y;
+                } else
+                {
+                    //Vertical dijkstra
+                    nextLevel = n.Item1.x;
+                    currentLevel = current.x;
+                }
+                if (n.Item1.visited == false && nextLevel >= currentLevel)
                 {
                     //Calculate tentative distance for this node
                     int tentativeDistance = current.distance + n.Item2;
@@ -235,15 +248,15 @@ namespace AnimationImageAnalogy
                 //but just in case
                 return;
             }
-            dijkstra(smallestDistNode.Item1, end);
+            dijkstra(smallestDistNode.Item1, end, horizontal);
         }
 
-        public void findShortestPath(Node start, Node end)
+        public void findShortestPath(Node start, Node end, bool horizontal)
         {
             start.distance = 0;
             start.visited = true;
 
-            dijkstra(start,end);
+            dijkstra(start,end, horizontal);
         }
 
     }

@@ -244,7 +244,7 @@ namespace AnimationImageAnalogy
         }
 
         //bX and bY are the top left corner of the patch
-        private Color[,] copyPatchDijkstra(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
+        private Color[,] copyPatchDijkstra(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY, bool horizontal)
         {
 
             /* Calculate bounds of patch */
@@ -255,7 +255,7 @@ namespace AnimationImageAnalogy
 
             //Initiaze the patch graph in preparation for finding the shortest path
             PatchGraph pg = new PatchGraph(patchDimension, patchIter);
-            pg.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, 0);
+            pg.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, horizontal);
             pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
 
             //Find the shortest path using dijkstra's for the x overlap
@@ -267,7 +267,7 @@ namespace AnimationImageAnalogy
 
             //Node start = pg.graph[beginX + (patchDimension / 2), beginY];
             //Node end = pg.graph[beginX + (patchDimension / 2), endY];
-            pg.findShortestPath(start, end);
+            pg.findShortestPath(start, end, horizontal);
             Queue<Tuple<int,int>> shortestPath = pg.shortestPath;
 
             //Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
