@@ -86,7 +86,7 @@ namespace AnimationImageAnalogy
                 for (int j = 0; j < height; j++)
                 {
                     //Make sure that it is a full patch
-                    if (width - i >= patchDimension && height - j >= patchDimension)
+                    if (width - i > patchDimension && height - j > patchDimension)
                     {
                         Tuple<int, int> currentPatchA1 = new Tuple<int, int>(i, j);
                         currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY,
@@ -129,7 +129,7 @@ namespace AnimationImageAnalogy
                 int yRand = r.Next(0, height);
 
                 //Make sure that it is a full patch
-                if (width - xRand >= patchDimension && height - yRand >= patchDimension)
+                if (width - xRand > patchDimension + 1 && height - yRand > patchDimension + 1)
                 {
                     Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
                     currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY,
@@ -352,7 +352,7 @@ namespace AnimationImageAnalogy
         /* 
          * Create an image analogy for the given image using the source pair.
          */
-        public Color[,] CreateImageAnalogy(Color[,] imageB1)
+        public Color[,] CreateImageAnalogy(Color[,] imageB1, int patchNum)
         {
             int width = imageB1.GetLength(0);
             int height = imageB1.GetLength(1);
@@ -384,7 +384,9 @@ namespace AnimationImageAnalogy
                     }
 
                     //bestMatch = BestPatchMatch(imageB1, i, j);
-                    bestMatch = BestRandomPatch(imageB1, i,j, 500);
+                    bestMatch = BestRandomPatch(imageB1, i,j, patchNum);
+                    //Console.WriteLine("Match x: " + bestMatch.Item1);
+                    //Console.WriteLine("Match y: " + bestMatch.Item2);
 
 
                     //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);

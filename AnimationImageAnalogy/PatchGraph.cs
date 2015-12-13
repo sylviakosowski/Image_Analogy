@@ -31,7 +31,7 @@ namespace AnimationImageAnalogy
         public void createGraph(Color[,] imageB2, Color[,] imageA2,
             Tuple<int,int> patchB, Tuple<int,int> patchA, bool horizontal)
         {
-            /* Calculate how wide and tall the overlap is. */
+            /* Calculate how wide and tall the otverlap is. */
             int xOverlap;
             int yOverlap;
 
@@ -72,14 +72,19 @@ namespace AnimationImageAnalogy
                     bool test2 = outOfBounds(ayStart + j, 0, imageA2.GetLength(1));
                     bool test3 = outOfBounds(bxStart + patchIter + i, 0, imageB2.GetLength(0));
                     bool test4 = outOfBounds(byStart + patchIter + j, 0, imageA2.GetLength(1));
+                    /*
                     if (test1 || test2 || test3 || test4)
                     {
                         Console.WriteLine("sup");
+                        Console.WriteLine(axStart+i);
+                        Console.WriteLine(ayStart+j);
+                        Console.WriteLine(bxStart+patchIter+i);
+                        Console.WriteLine(byStart + patchIter + j);
                         break;
-                    }
+                    }*/
 
                     Color a = imageA2[axStart+i,ayStart+j];
-                    Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
+                    Color b = imageB2[bxStart+patchIter+i-1, byStart+patchIter+j-1];
 
                     int aVal = a.A - b.A > 0 ? a.A - b.A : 0;
                     int rVal = a.R - b.R > 0 ? a.R - b.R : 0;
