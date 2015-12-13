@@ -31,12 +31,6 @@ namespace AnimationImageAnalogy
         public void createGraph(Color[,] imageB2, Color[,] imageA2,
             Tuple<int,int> patchB, Tuple<int,int> patchA, int overlapDimension)
         {
-            //int xStart;
-            //int xEnd;
-
-            //int yStart;
-            //int yEnd;
-
             /* Calculate how wide and tall the overlap is. */
             int xOverlap;
             int yOverlap;
@@ -52,24 +46,6 @@ namespace AnimationImageAnalogy
                 xOverlap = patchDimension;
                 yOverlap = patchDimension - patchIter;
             }
-
-            /*
-            if(overlapDimension == 0)
-            {
-                //Calculating bounds of horizontal overlap
-                xStart = patchNew.Item1;
-                xEnd = patchExisting.Item1 + patchDimension;
-                yStart = patchNew.Item2;
-                yEnd = patchNew.Item2 + patchDimension;
-            } 
-            else
-            {
-                //Calculating bounds of vertical overlap
-                xStart = patchNew.Item1;
-                xEnd = patchNew.Item1 + patchDimension;
-                yStart = patchNew.Item2;
-                yEnd = patchExisting.Item2 + patchDimension;
-            }*/
 
             graph = new Node[xOverlap, yOverlap];
 
@@ -88,9 +64,6 @@ namespace AnimationImageAnalogy
                 for(int j = 0; j < yOverlap; j++)
                 {
                     //Compute difference between each pixel in the overlap
-                    //Console.WriteLine(axStart + i);
-                    //Console.WriteLine(ayStart + j);
-
                     Color a = imageA2[axStart+i,ayStart+j];
                     Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
                     Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
@@ -100,36 +73,21 @@ namespace AnimationImageAnalogy
                     graph[i, j] = newNode;
                 }
             }
-
-            //graph = new Node[(xEnd-xStart), (yEnd-yStart)];
-
-            /*
-            for(int i = xStart; i < xEnd; i++) 
-            {
-                for(int j = yStart; j < yEnd; j++)
-                {
-                    //Compute difference between each pixel in overlap
-                    Color a = imageB2[i,j];
-                    Color b = imageA2[i,j];
-                    
-                    Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
-
-                    //Create a new node initialized with everything but the neighbors 
-                    Node newNode = new Node(i,j,diff);
-                    //graph.Add(new Tuple<int,int>(i,j), newNode);
-                    graph[i,j] = newNode;
-                }
-            }*/
         }
 
 
-        /* TODO: CLEAN UP THIS FUNCTION BETTER */
+        /* Initialize the graph with the neighbors of each pixel. The edge between each
+         * pixel and its neighbor is weighted according to the sum of squared differences
+         * between the pixel and its neighbor. */
         public void initializeGraphNeighborsWeights(int xStart, int xEnd, int yStart, int yEnd)
         {
             //Iterate through the graph, intializing the neighbors for each pixel
             //Weights of the edges between pixels are determined by the SSD between them
             int xBound = graph.GetLength(0);
             int yBound = graph.GetLength(1);
+
+            Console.WriteLine("xBound:" + xBound);
+            Console.WriteLine("yBound:" + yBound);
 
             for (int i = 0; i < xBound; i++ )
             {
@@ -175,6 +133,8 @@ namespace AnimationImageAnalogy
 
                         graph[i, j].addNeighbor(graph[i, j+1], ssd);
                     }
+
+                    Console.WriteLine("NEIGHBORS COUNT:" + graph[i, j].neighbors.Count);
                 }
             }
 
@@ -185,6 +145,7 @@ namespace AnimationImageAnalogy
         {
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
             shortestPath.Enqueue(pos);
+            Console.WriteLine(pos);
 
             if (current.x == end.x && current.y == end.y)
             {

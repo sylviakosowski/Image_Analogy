@@ -232,22 +232,38 @@ namespace AnimationImageAnalogy
             Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
             
             //Loop through the patches. Depending on which side of the
-            //path the pixel is on, choose to kepe either the color value
+            //path the pixel is on, choose to keep either the color value
             //from A or from B
-            /*
+
+            //Pixels on the path will be taken from B
+            
             int currentBX = bX;
             int currentBY = bY;
+            Tuple<int,int> pathNode = shortestPath.Dequeue();
 
             for (int i = beginX; i < endX; i++)
             {
                 currentBY = bY;
                 for (int j = beginY; j < endY; j++)
                 {
-                    imageB2[currentBX, currentBY] = imageA2[i, j];
+                    if(i - beginX > pathNode.Item1)
+                    {
+                        imageB2[currentBX, currentBY] = imageA2[i, j];
+                    } 
+                    //otherwise leave imageB2 as it is
                     currentBY++;
                 }
                 currentBX++;
-            }*/
+                int currentNodeY = pathNode.Item2;
+                if(currentNodeY != patchDimension - 1)
+                {
+                    while (pathNode.Item2 == currentNodeY)
+                    {
+                        pathNode = shortestPath.Dequeue();
+                    }
+                    Console.WriteLine(pathNode.Item2);
+                }
+            }
             return imageB2;
         }
 
