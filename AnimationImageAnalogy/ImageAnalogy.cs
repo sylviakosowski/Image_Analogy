@@ -41,6 +41,12 @@ namespace AnimationImageAnalogy
             {
                 for (int j = 0; j < patchYSize; j++)
                 {
+                    if( patchLocA.Item1 + i >= imageA.GetLength(0) || patchLocA.Item2 + j >= imageA.GetLength(1))
+                    {
+                        break;
+                    }
+
+
                     //Compute sum of squared differences for each pixel in patch
                     Color a = imageA[patchLocA.Item1+i, patchLocA.Item2+j];
                     Color b = imageB[bX+i, bY+j];
@@ -73,18 +79,24 @@ namespace AnimationImageAnalogy
             int currentPatchVal = 0;
 
             //Iterate through A1 to find the closest match for this patch in B1
-            for (int i = 0; i < width; i += patchDimension)
+            //for (int i = 0; i < width; i += patchIter)
+            for (int i = 0; i < width; i++)
             {
-                for (int j = 0; j < height; j += patchDimension)
+                //for (int j = 0; j < height; j += patchIter)
+                for (int j = 0; j < height; j++)
                 {
-                    Tuple<int,int> currentPatchA1 = new Tuple<int,int>(i,j);
-                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY, 
-                        patchDimension, patchDimension);
-
-                    if (currentPatchVal < bestPatchVal)
+                    //Make sure that it is a full patch
+                    if (width - i >= patchDimension && height - j >= patchDimension)
                     {
-                        bestPatchVal = currentPatchVal;
-                        bestPatchA1 = currentPatchA1;
+                        Tuple<int, int> currentPatchA1 = new Tuple<int, int>(i, j);
+                        currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY,
+                            patchDimension, patchDimension);
+
+                        if (currentPatchVal < bestPatchVal)
+                        {
+                            bestPatchVal = currentPatchVal;
+                            bestPatchA1 = currentPatchA1;
+                        }
                     }
                     
                 }
@@ -121,6 +133,115 @@ namespace AnimationImageAnalogy
             return imageB2;
         }
 
+        private Color[,] copyPatchOnlyRight(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
+        {
+            /* Calculate bounds of patch */
+            int overlapSize = patchDimension - patchIter;
+
+
+            int beginX = patchA.Item1 + overlapSize;
+            int endX = beginX + patchIter;
+            int beginY = patchA.Item2 + overlapSize;
+            int endY = beginY + patchIter;
+
+            int currentBX = bX;
+            int currentBY = bY;
+
+            if (endY >= imageA2.GetLength(1) || endX >= imageA2.GetLength(0))
+            {
+                return imageB2;
+            }
+
+            for (int i = beginX; i < endX; i++)
+            {
+                currentBY = bY;
+                for (int j = beginY; j < endY; j++)
+                {
+                    imageB2[currentBX, currentBY] = imageA2[i, j];
+                    currentBY++;
+                }
+                currentBX++;
+            }
+            return imageB2;
+        }
+
+
+        /* Copies patch by performing average in the overlap */
+        private Color[,] copyPatchAverage(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
+        {
+            /* Calculate bounds of overlap */
+            int beginX = patchA.Item1 + patchIter - 1;
+            int endX = beginX + patchDimension - 1;
+            int beginY = patchA.Item2 + patchIter - 1;
+            int endY = beginY + patchDimension - 1;
+
+            int currentBX = bX;
+            int currentBY = bY;
+
+            if(endY >= imageA2.GetLength(1) || endX >= imageA2.GetLength(0))
+            {
+                return imageB2;
+            }
+
+            for(int i = beginX; i < endX; i++)
+            {
+                currentBY = bY;
+                for (int j = beginY; j < endY; j++)
+                {
+                    Color a2 = imageA2[i, j];
+                    Color b2 = imageB2[currentBX, currentBY];
+                    Color avgColor = Color.FromArgb((a2.A + b2.A)/2, (a2.R + b2.R)/2, (a2.G + b2.G)/2, (a2.B+b2.B)/2);
+
+                    imageB2[currentBX, currentBY] = avgColor;
+                    currentBY++;
+                }
+                currentBX++;
+            }
+            
+            
+            return imageB2;
+        }
+
+        //bX and bY are the top left corner of the patch
+        private Color[,] copyPatchDijkstra(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
+        {
+
+            /* Calculate bounds of patch */
+            int beginX = patchA.Item1;
+            int endX = beginX + patchDimension;
+            int beginY = patchA.Item2;
+            int endY = beginY + patchDimension;
+
+            //Find the shortest path using dijkstra's for the x overlap
+            PatchGraph pg = new PatchGraph(patchDimension, patchIter);
+            pg.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, 0);
+
+
+            /*
+            pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
+
+            Node start = pg.graph[beginX + (patchDimension / 2), beginY];
+            Node end = pg.graph[beginX + (patchDimension / 2), endY];
+            pg.findShortestPath(start, end);
+
+            Queue<Tuple<int,int>> shortestPath = pg.shortestPath;
+
+            int currentBX = bX;
+            int currentBY = bY;
+
+            for (int i = beginX; i < endX; i++)
+            {
+                currentBY = bY;
+                for (int j = beginY; j < endY; j++)
+                {
+                    imageB2[currentBX, currentBY] = imageA2[i, j];
+                    currentBY++;
+                }
+                currentBX++;
+            }*/
+            return imageB2;
+        }
+
         /* 
          * Create an image analogy for the given image using the source pair.
          */
@@ -131,14 +252,50 @@ namespace AnimationImageAnalogy
             Color[,] imageB2 = new Color[width, height];
 
             Tuple<int, int> bestMatch = null;
+
+            
             /*Iterate through patches finding a best match for each */
+
+
+            for (int i = 0; i < width; i += patchIter)
+            {
+                if (i + patchDimension >= width)
+                {
+                    break;
+                }
+                for (int j = 0; j < height; j += patchIter)
+                {
+                    if(j + patchDimension >= height)
+                    {
+                        break;
+                    }
+
+                    bestMatch = BestPatchMatch(imageB1, i, j);
+
+
+
+                    //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);
+                    //imageB2 = copyPatchOnlyRight(imageA2, imageB2, bestMatch, i, j);
+                    //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);
+
+                    
+
+                    //imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
+
+                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j);
+
+                    Console.WriteLine("Current patch index: " + i + ", " + j);
+                }
+
+            }
+            /*
             for (int i = 0; i < width; i += patchDimension){
                 for (int j = 0; j < height; j += patchDimension) {
                     bestMatch = BestPatchMatch(imageB1, i, j);
                     imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
                     //Console.WriteLine("Current patch index: " + i + ", " + j);
                 }
-            }
+            }*/
 
             return imageB2;
         }

@@ -26,7 +26,7 @@ namespace AnimationImageAnalogy
             this.x = x;
             this.y = y;
             this.diff = diff;
-            tentativeDistance = Int32.MaxValue;
+            distance = Int32.MaxValue;
             visited = false;
             neighbors = new List<Tuple<Node,int>>();
         }

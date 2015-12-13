@@ -34,7 +34,7 @@ namespace AnimationImageAnalogy
         }
 
         /*Given an array of colors, create an image file*/
-        public static void createFileFromImageArray(Color[,] image)
+        public static void createFileFromImageArray(Color[,] image, string name)
         {
             using (Bitmap bmp = new Bitmap(image.GetLength(0), image.GetLength(1)))
             {
@@ -47,7 +47,7 @@ namespace AnimationImageAnalogy
                 }
 
                 Console.WriteLine("Saving image");
-                bmp.Save("TestImages/testOutput.png", ImageFormat.Png);
+                bmp.Save(name, ImageFormat.Png);
             }
 
 

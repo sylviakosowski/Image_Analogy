@@ -46,6 +46,7 @@
     <Compile Include="ImageAnalogy.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="PatchGraph.cs" />
+    <Compile Include="PatchGraph2.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

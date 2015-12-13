@@ -18,10 +18,10 @@ namespace AnimationImageAnalogy
             /* Image we want to generate a pair out of*/
             Color[,] imageB1 = Utilities.createImageArrayFromFile("TestImages/imageB1.png");
 
-            ImageAnalogy ia = new ImageAnalogy(imageA1, imageA2, 5, 5);
+            ImageAnalogy ia = new ImageAnalogy(imageA1, imageA2, 5, 2);
 
             Color[,] imageB2 = ia.CreateImageAnalogy(imageB1);
-            Utilities.createFileFromImageArray(imageB2);
+            Utilities.createFileFromImageArray(imageB2, "TestImages/testOutputRiver.png");
 
             Console.ReadLine();
         }

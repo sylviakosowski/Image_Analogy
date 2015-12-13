@@ -12,7 +12,7 @@ namespace AnimationImageAnalogy
         private int patchDimension;
         private int patchIter;
 
-        Node[,] graph;
+        public Node[,] graph;
 
         public Queue<Tuple<int,int>> shortestPath;
 
@@ -25,18 +25,38 @@ namespace AnimationImageAnalogy
             shortestPath = new Queue<Tuple<int, int>>();
         }
 
-        /* TODO: CLEAN UP THIS FUNCTION BETTER */
-        public void createGraph(Color[,] imageExisting, Color[,] imageNew,
-            Tuple<int,int> patchExisting, Tuple<int,int> patchNew, int overlapDimension)
+        /* Construct a graph out of pixels where the value at each node is the difference 
+         * between the pixel components of the existing patch from B2 and the new patch from
+         * A2. Edges are weighted with the sum of squared differences between adjacent pixels. */
+        public void createGraph(Color[,] imageB2, Color[,] imageA2,
+            Tuple<int,int> patchB, Tuple<int,int> patchA, int overlapDimension)
         {
-            int xStart;
-            int xEnd;
+            //int xStart;
+            //int xEnd;
 
-            int yStart;
-            int yEnd;
+            //int yStart;
+            //int yEnd;
+
+            /* Calculate how wide and tall the overlap is. */
+            int xOverlap;
+            int yOverlap;
 
             if(overlapDimension == 0)
             {
+                //We are performing dijkstra's for horizontal overlap.
+                xOverlap = patchDimension - patchIter;
+                yOverlap = patchDimension;
+            } else
+            {
+                //We are performing dijkstra's for vertical overlap.
+                xOverlap = patchDimension;
+                yOverlap = patchDimension - patchIter;
+            }
+
+            /*
+            if(overlapDimension == 0)
+            {
+                //Calculating bounds of horizontal overlap
                 xStart = patchNew.Item1;
                 xEnd = patchExisting.Item1 + patchDimension;
                 yStart = patchNew.Item2;
@@ -44,42 +64,77 @@ namespace AnimationImageAnalogy
             } 
             else
             {
+                //Calculating bounds of vertical overlap
                 xStart = patchNew.Item1;
                 xEnd = patchNew.Item1 + patchDimension;
                 yStart = patchNew.Item2;
                 yEnd = patchExisting.Item2 + patchDimension;
+            }*/
+
+            graph = new Node[xOverlap, yOverlap];
+
+            int axStart = patchA.Item1;
+            int ayStart = patchA.Item2;
+
+            int bxStart = patchB.Item1;
+            int byStart = patchB.Item2;
+
+            Console.WriteLine(axStart);
+            Console.WriteLine(ayStart);
+
+            //Iterate through the graph, initializing the nodes
+            for(int i = 0; i < xOverlap; i++)
+            {
+                for(int j = 0; j < yOverlap; j++)
+                {
+                    //Compute difference between each pixel in the overlap
+                    //Console.WriteLine(axStart + i);
+                    //Console.WriteLine(ayStart + j);
+
+                    Color a = imageA2[axStart+i,ayStart+j];
+                    Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
+                    Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
+
+                    //Create a new node initialied with everything but the neighbors
+                    Node newNode = new Node(i, j, diff);
+                    graph[i, j] = newNode;
+                }
             }
 
-            graph = new Node[(xEnd-xStart), (yEnd-yStart)];
+            //graph = new Node[(xEnd-xStart), (yEnd-yStart)];
 
+            /*
             for(int i = xStart; i < xEnd; i++) 
             {
                 for(int j = yStart; j < yEnd; j++)
                 {
                     //Compute difference between each pixel in overlap
-                    Color a = imageExisting[i,j];
-                    Color b = imageNew[i,j];
+                    Color a = imageB2[i,j];
+                    Color b = imageA2[i,j];
                     
                     Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
 
-                    /* Create a new node initialized with everything but the neighbors */
+                    //Create a new node initialized with everything but the neighbors 
                     Node newNode = new Node(i,j,diff);
                     //graph.Add(new Tuple<int,int>(i,j), newNode);
                     graph[i,j] = newNode;
                 }
-            }
+            }*/
         }
 
 
         /* TODO: CLEAN UP THIS FUNCTION BETTER */
-        public void initilazeGraphNeighborsWeights(int xStart, int xEnd, int yStart, int yEnd)
+        public void initializeGraphNeighborsWeights(int xStart, int xEnd, int yStart, int yEnd)
         {
             for (int i = xStart; i < xEnd; i++ )
             {
                 for (int j = yStart; j < yEnd; j++)
                 {
-                   // Node n = graph.TryGetValue( new Tuple<int,int>(i,j) );
+                    // Node n = graph.TryGetValue( new Tuple<int,int>(i,j) );
                     //Node currentNode = graph[i, j];
+                    Console.WriteLine(i);
+                    Console.WriteLine(j);
+                    Console.WriteLine(graph.Length);
                     Color currentDiff = graph[i,j].diff;
                     if (i - 1 >= xStart)
                     {
@@ -125,6 +180,7 @@ namespace AnimationImageAnalogy
 
         }
 
+        /* Helper function for findShortestPath, performs Dijkstra's algorithm */
         private void dijkstra(Node current, Node end)
         {
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
