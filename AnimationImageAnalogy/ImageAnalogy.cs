@@ -261,14 +261,29 @@ namespace AnimationImageAnalogy
             //Find the shortest path using dijkstra's for the x overlap
             //TODO: Right now it finds shortest path between the two midpoints, but
             //we should actually do it between the smallest value in the rows
-            int midX = pg.graph.GetLength(0)/2;
-            Node start = pg.graph[midX, 0];
-            Node end = pg.graph[midX, pg.graph.GetLength(1)-1];
+            int mid;
+            Node start;
+            Node end;
+
+            if (horizontal)
+            {
+                mid = pg.graph.GetLength(0) / 2;
+                start = pg.graph[mid, 0];
+                end = pg.graph[mid, pg.graph.GetLength(1) - 1];
+            } else
+            {
+                mid = pg.graph.GetLength(1) / 2;
+                start = pg.graph[0, mid];
+                end = pg.graph[pg.graph.GetLength(0)-1, mid];
+            }
 
             //Node start = pg.graph[beginX + (patchDimension / 2), beginY];
             //Node end = pg.graph[beginX + (patchDimension / 2), endY];
             pg.findShortestPath(start, end, horizontal);
             Queue<Tuple<int,int>> shortestPath = pg.shortestPath;
+
+            //Console.WriteLine("Horizontal: " + horizontal);
+            //Console.WriteLine("SHORTESST PATH LENGTH: " + shortestPath.Count);
 
             //Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
             
@@ -287,22 +302,48 @@ namespace AnimationImageAnalogy
                 currentBY = bY;
                 for (int j = beginY; j < endY; j++)
                 {
-                    if(i - beginX > pathNode.Item1)
+                    if(horizontal)
                     {
-                        imageB2[currentBX, currentBY] = imageA2[i, j];
-                    } 
+                        if (i - beginX > pathNode.Item1)
+                        {
+                            imageB2[currentBX, currentBY] = imageA2[i, j];
+                        }
+                    } else
+                    {
+                        if (j - beginY > pathNode.Item2)
+                        {
+                            imageB2[currentBX, currentBY] = imageA2[i, j];
+                        }
+                    }
+                    
                     //otherwise leave imageB2 as it is
                     currentBY++;
                 }
                 currentBX++;
-                int currentNodeY = pathNode.Item2;
-                if(currentNodeY != patchDimension - 1)
+
+                if(horizontal)
                 {
-                    while (pathNode.Item2 == currentNodeY)
+                    int currentNodeY = pathNode.Item2;
+                    if (currentNodeY != patchDimension - 1)
                     {
-                        pathNode = shortestPath.Dequeue();
+                        while (pathNode.Item2 == currentNodeY)
+                        {
+                            pathNode = shortestPath.Dequeue();
+                        }
+                        //Console.WriteLine(pathNode.Item2);
                     }
-                    //Console.WriteLine(pathNode.Item2);
+                }
+                else
+                {
+                    int currentNodeX = pathNode.Item1;
+                    if (currentNodeX != patchDimension - 1)
+                    {
+                        while (pathNode.Item1 == currentNodeX)
+                        {
+                            pathNode = shortestPath.Dequeue();
+                        }
+                        //Console.WriteLine(pathNode.Item2);
+                    }
                 }
             }
             return imageB2;
@@ -354,7 +395,8 @@ namespace AnimationImageAnalogy
 
                     //imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
 
-                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j);
+                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, true);
+                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
 
                     Console.WriteLine("Current patch index: " + i + ", " + j);
                     
