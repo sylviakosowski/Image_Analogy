@@ -212,20 +212,29 @@ namespace AnimationImageAnalogy
             int beginY = patchA.Item2;
             int endY = beginY + patchDimension;
 
-            //Find the shortest path using dijkstra's for the x overlap
+            //Initiaze the patch graph in preparation for finding the shortest path
             PatchGraph pg = new PatchGraph(patchDimension, patchIter);
             pg.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, 0);
-
-
-            /*
             pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
 
-            Node start = pg.graph[beginX + (patchDimension / 2), beginY];
-            Node end = pg.graph[beginX + (patchDimension / 2), endY];
-            pg.findShortestPath(start, end);
+            //Find the shortest path using dijkstra's for the x overlap
+            //TODO: Right now it finds shortest path between the two midpoints, but
+            //we should actually do it between the smallest value in the rows
+            int midX = pg.graph.GetLength(0)/2;
+            Node start = pg.graph[midX, 0];
+            Node end = pg.graph[midX, pg.graph.GetLength(1)-1];
 
+            //Node start = pg.graph[beginX + (patchDimension / 2), beginY];
+            //Node end = pg.graph[beginX + (patchDimension / 2), endY];
+            pg.findShortestPath(start, end);
             Queue<Tuple<int,int>> shortestPath = pg.shortestPath;
 
+            Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
+            
+            //Loop through the patches. Depending on which side of the
+            //path the pixel is on, choose to kepe either the color value
+            //from A or from B
+            /*
             int currentBX = bX;
             int currentBY = bY;
 

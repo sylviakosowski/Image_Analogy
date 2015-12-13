@@ -126,17 +126,17 @@ namespace AnimationImageAnalogy
         /* TODO: CLEAN UP THIS FUNCTION BETTER */
         public void initializeGraphNeighborsWeights(int xStart, int xEnd, int yStart, int yEnd)
         {
-            for (int i = xStart; i < xEnd; i++ )
+            //Iterate through the graph, intializing the neighbors for each pixel
+            //Weights of the edges between pixels are determined by the SSD between them
+            int xBound = graph.GetLength(0);
+            int yBound = graph.GetLength(1);
+
+            for (int i = 0; i < xBound; i++ )
             {
-                for (int j = yStart; j < yEnd; j++)
+                for (int j = 0; j < yBound; j++)
                 {
-                    // Node n = graph.TryGetValue( new Tuple<int,int>(i,j) );
-                    //Node currentNode = graph[i, j];
-                    Console.WriteLine(i);
-                    Console.WriteLine(j);
-                    Console.WriteLine(graph.Length);
                     Color currentDiff = graph[i,j].diff;
-                    if (i - 1 >= xStart)
+                    if (i - 1 >= 0)
                     {
                         //There is a neighbor to the left
                         Color neighborDiff = graph[i-1, j].diff;
@@ -146,7 +146,7 @@ namespace AnimationImageAnalogy
                         graph[i, j].addNeighbor(graph[i-1, j], ssd);
                     }
 
-                    if (i + 1 < xEnd)
+                    if (i + 1 < xBound)
                     {
                         //There is a neighbor to the right
                         Color neighborDiff = graph[i + 1, j].diff;
@@ -156,7 +156,7 @@ namespace AnimationImageAnalogy
                         graph[i, j].addNeighbor(graph[i + 1, j], ssd);
                     }
 
-                    if (j - 1 >= yStart)
+                    if (j - 1 >= 0)
                     {
                         //There is a neighbor to the top
                         Color neighborDiff = graph[i, j-1].diff;
@@ -166,7 +166,7 @@ namespace AnimationImageAnalogy
                         graph[i, j].addNeighbor(graph[i, j-1], ssd);
                     }
 
-                    if (j + 1 < yEnd)
+                    if (j + 1 < yBound)
                     {
                         //There is a neighbor to the bottom
                         Color neighborDiff = graph[i, j+1].diff;
