@@ -105,6 +105,47 @@ namespace AnimationImageAnalogy
             return bestPatchA1;
         }
 
+        /* Find the best patch among n randomly selected patches. */
+        private Tuple<int, int> BestRandomPatch(Color[,] imageB1, int bX, int bY, int n)
+        {
+            int width = imageA1.GetLength(0);
+            int height = imageA1.GetLength(1);
+
+            //Keeps track of coordinates and values for the best patch we've found so far
+            Tuple<int, int> bestPatchA1 = null;
+            //we are looking for the smallest patchval, so set to max int as default
+            int bestPatchVal = Int32.MaxValue;
+
+            //Keeps track of the current patch value in the patch we're iterating on
+            int currentPatchVal = 0;
+
+            Random r = new Random();
+
+            //Test n randomly selected patches for the best match
+            for(int i = 0; i < n; i++)
+            {
+                //Select the top left coordinates of the random patch
+                int xRand = r.Next(0, width);
+                int yRand = r.Next(0, height);
+
+                //Make sure that it is a full patch
+                if (width - xRand >= patchDimension && height - yRand >= patchDimension)
+                {
+                    Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
+                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY,
+                        patchDimension, patchDimension);
+
+                    if (currentPatchVal < bestPatchVal)
+                    {
+                        bestPatchVal = currentPatchVal;
+                        bestPatchA1 = currentPatchA1;
+                    }
+                }
+            }
+
+            return bestPatchA1;
+        }
+
         /* Copies the patch with top left corner at indices designated by patchA from imageA2 to 
          * the patch with top left corner at indices bX, bY in imageB2. The patches should overlap,
          * so compute Dijkstra's algorithm to resolve the overlap.
@@ -291,7 +332,7 @@ namespace AnimationImageAnalogy
 
                 if( i > 5)
                 {
-                    break;
+                    //break;
                 }
 
                 for (int j = 0; j < height; j += patchIter)
@@ -301,8 +342,8 @@ namespace AnimationImageAnalogy
                         break;
                     }
 
-                    bestMatch = BestPatchMatch(imageB1, i, j);
-
+                    //bestMatch = BestPatchMatch(imageB1, i, j);
+                    bestMatch = BestRandomPatch(imageB1, i,j, 500);
 
 
                     //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);
