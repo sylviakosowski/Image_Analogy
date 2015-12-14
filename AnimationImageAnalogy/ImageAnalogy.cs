@@ -323,6 +323,18 @@ namespace AnimationImageAnalogy
                             //Console.WriteLine("YO SUP!!!!!!!!!!!!!");
                         } else
                         {
+                            if (j < beginY + patchDimension / 2)
+                            {
+                                //Do a 50-50 blend in this area where the dijkstra's overlap
+                                Color current = imageB2[currentBX, currentBY];
+                                Color aColor = imageA2[i, j];
+                                int aVal = (current.A + aColor.A)/ 2;
+                                int rVal = (current.R + aColor.R) / 2;
+                                int gVal = (current.G + aColor.G) / 2;
+                                int bVal = (current.B + aColor.B)/ 2;
+                                Color average = Color.FromArgb(aVal, rVal, gVal, bVal);
+                                imageB2[currentBX, currentBY] = average;
+                            }
                             //Console.WriteLine("hello2?");
                         }
                     }
