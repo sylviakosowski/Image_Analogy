@@ -366,7 +366,7 @@ namespace AnimationImageAnalogy
 
             for (int i = 0; i < width; i += patchIter)
             {
-                if (i + patchDimension >= width)
+                if (i + patchDimension + patchIter >= width)
                 {
                     break;
                 }
@@ -378,7 +378,7 @@ namespace AnimationImageAnalogy
 
                 for (int j = 0; j < height; j += patchIter)
                 {
-                    if(j + patchDimension >= height)
+                    if(j + patchDimension + patchIter >= height)
                     {
                         break;
                     }
@@ -403,6 +403,7 @@ namespace AnimationImageAnalogy
                     Console.WriteLine("Current patch index: " + i + ", " + j);
                     
                 }
+                //Console.WriteLine("Current patch i: " + i);
 
             }
             /*

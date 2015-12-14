@@ -84,7 +84,7 @@ namespace AnimationImageAnalogy
                     }*/
 
                     Color a = imageA2[axStart+i,ayStart+j];
-                    Color b = imageB2[bxStart+patchIter+i-1, byStart+patchIter+j-1];
+                    Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
 
                     int aVal = a.A - b.A > 0 ? a.A - b.A : 0;
                     int rVal = a.R - b.R > 0 ? a.R - b.R : 0;
