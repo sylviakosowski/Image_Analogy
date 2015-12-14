@@ -316,7 +316,10 @@ namespace AnimationImageAnalogy
                     {
                         if (j - beginY > pathNode.Item2)
                         {
-                            imageB2[currentBX, currentBY] = imageA2[i, j];
+                            if(i > beginX + patchDimension/2)
+                            {
+                                imageB2[currentBX, currentBY] = imageA2[i, j];
+                            }
                             //Console.WriteLine("YO SUP!!!!!!!!!!!!!");
                         } else
                         {
@@ -504,10 +507,10 @@ namespace AnimationImageAnalogy
                     //imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
 
                     //Console.WriteLine("Horizontal shortest path");
-                    //imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, true);
+                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, true);
                     //Console.WriteLine("Vertical shortest path");
-                    //imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
-                    imageB2 = copyPatchDijkstra2(imageA2, imageB2, bestMatch, i, j);
+                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
+                    //imageB2 = copyPatchDijkstra2(imageA2, imageB2, bestMatch, i, j);
 
 
                     Console.WriteLine("Current patch index: " + i + ", " + j);
