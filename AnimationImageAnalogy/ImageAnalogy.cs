@@ -307,12 +307,20 @@ namespace AnimationImageAnalogy
                         if (i - beginX > pathNode.Item1)
                         {
                             imageB2[currentBX, currentBY] = imageA2[i, j];
+                            //Console.WriteLine("YO SUP!!!!!!!!!!!!!");
+                        } else
+                        {
+                            //Console.WriteLine("hello?");
                         }
                     } else
                     {
                         if (j - beginY > pathNode.Item2)
                         {
                             imageB2[currentBX, currentBY] = imageA2[i, j];
+                            //Console.WriteLine("YO SUP!!!!!!!!!!!!!");
+                        } else
+                        {
+                            //Console.WriteLine("hello2?");
                         }
                     }
                     
@@ -348,6 +356,104 @@ namespace AnimationImageAnalogy
             }
             return imageB2;
         }
+
+
+        private Color[,] copyPatchDijkstra2(Color[,] imageA2, Color[,] imageB2, Tuple<int, int> patchA, int bX, int bY)
+        {
+            /* Calculate bounds of patch */
+            int beginX = patchA.Item1;
+            int endX = beginX + patchDimension;
+            int beginY = patchA.Item2;
+            int endY = beginY + patchDimension;
+
+            //Initiaze the patch graph in preparation for finding the shortest path
+            PatchGraph pgh = new PatchGraph(patchDimension, patchIter);
+            PatchGraph pgv = new PatchGraph(patchDimension, patchIter);
+
+            pgh.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, true);
+            pgv.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, false);
+
+            pgh.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
+            pgv.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
+
+            //Find the shortest path using dijkstra's for the x overlap
+            //TODO: Right now it finds shortest path between the two midpoints, but
+            //we should actually do it between the smallest value in the rows
+            int mid;
+            Node start;
+            Node end;
+
+            mid = pgh.graph.GetLength(0) / 2;
+            start = pgh.graph[mid, 0];
+            end = pgh.graph[mid, pgh.graph.GetLength(1) - 1];
+            
+
+            //Node start = pg.graph[beginX + (patchDimension / 2), beginY];
+            //Node end = pg.graph[beginX + (patchDimension / 2), endY];
+            pgh.findShortestPath(start, end, true);
+            Queue<Tuple<int, int>> shortestPathH = pgh.shortestPath;
+
+            mid = pgv.graph.GetLength(1) / 2;
+            start = pgv.graph[0, mid];
+            end = pgv.graph[pgv.graph.GetLength(0) - 1, mid];
+            pgv.findShortestPath(start, end, false);
+            Queue<Tuple<int, int>> shortestPathV = pgv.shortestPath;
+
+            //Console.WriteLine("Horizontal: " + horizontal);
+            //Console.WriteLine("SHORTESST PATH LENGTH: " + shortestPath.Count);
+
+            //Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
+
+            //Loop through the patches. Depending on which side of the
+            //path the pixel is on, choose to keep either the color value
+            //from A or from B
+
+            //Pixels on the path will be taken from B
+
+            int currentBX = bX;
+            int currentBY = bY;
+            Tuple<int, int> pathNodeH = shortestPathH.Dequeue();
+            Tuple<int, int> pathNodeV = shortestPathV.Dequeue();
+
+            for (int i = beginX; i < endX; i++)
+            {
+                currentBY = bY;
+                for (int j = beginY; j < endY; j++)
+                {
+                    if( i - beginX >= pathNodeH.Item1 && j - beginY >= pathNodeV.Item1)
+                    {
+                        imageB2[currentBX, currentBY] = imageA2[i, j];
+                    }
+
+                    //otherwise leave imageB2 as it is
+                    currentBY++;
+                }
+                currentBX++;
+
+                    int currentNodeY = pathNodeH.Item2;
+                    if (currentNodeY != patchDimension - 1)
+                    {
+                        while (pathNodeH.Item2 == currentNodeY)
+                        {
+                            pathNodeH = shortestPathH.Dequeue();
+                        }
+                        //Console.WriteLine(pathNode.Item2);
+                    }
+
+                    int currentNodeX = pathNodeV.Item1;
+                    if (currentNodeX != patchDimension - 1)
+                    {
+                        while (pathNodeV.Item1 == currentNodeX)
+                        {
+                            pathNodeV = shortestPathV.Dequeue();
+                        }
+                        //Console.WriteLine(pathNode.Item2);
+                    }
+                
+            }
+            return imageB2;
+        }
+
 
         /* 
          * Create an image analogy for the given image using the source pair.
@@ -393,12 +499,16 @@ namespace AnimationImageAnalogy
                     //imageB2 = copyPatchOnlyRight(imageA2, imageB2, bestMatch, i, j);
                     //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);
 
-                    
+
 
                     //imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
 
-                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, true);
-                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
+                    //Console.WriteLine("Horizontal shortest path");
+                    //imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, true);
+                    //Console.WriteLine("Vertical shortest path");
+                    //imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
+                    imageB2 = copyPatchDijkstra2(imageA2, imageB2, bestMatch, i, j);
+
 
                     Console.WriteLine("Current patch index: " + i + ", " + j);
                     

@@ -192,6 +192,7 @@ namespace AnimationImageAnalogy
         private void dijkstra(Node current, Node end, bool horizontal)
         {
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
+            //Console.WriteLine(pos);
             shortestPath.Enqueue(pos);
             //Console.WriteLine(pos);
 
