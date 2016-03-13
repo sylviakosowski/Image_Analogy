@@ -15,23 +15,32 @@ namespace AnimationImageAnalogy
         public Node[,] graph;
 
         public Queue<Tuple<int,int>> shortestPath;
+        public int[] shortestPathArray;
 
         public PatchGraph(int patchDimension, int patchIter)
         {
             this.patchDimension = patchDimension;
             this.patchIter = patchIter;
-
             graph = null;
             shortestPath = new Queue<Tuple<int, int>>();
+            shortestPathArray = new int[patchDimension];
         }
 
         /* Construct a graph out of pixels where the value at each node is the difference 
          * between the pixel components of the existing patch from B2 and the new patch from
-         * A2. Edges are weighted with the sum of squared differences between adjacent pixels. */
+         * A2. Edges are weighted with the sum of squared differences between adjacent pixels. 
+         *
+         * imageB2: The second complex image
+         * imageA2: The first complex image
+         * patchB: The top left corner of the patch in image B2
+         * patchA: The top left corner of the patch in image A2
+         * horizontal: Whether we're finding a horizontal shortest path or a vertical shortest path
+         */
         public void createGraph(Color[,] imageB2, Color[,] imageA2,
             Tuple<int,int> patchB, Tuple<int,int> patchA, bool horizontal)
         {
-            /* Calculate how wide and tall the otverlap is. */
+            horizontal = !horizontal;
+            /* Calculate how wide and tall the overlap is. */
             int xOverlap;
             int yOverlap;
 
@@ -55,43 +64,21 @@ namespace AnimationImageAnalogy
             int bxStart = patchB.Item1;
             int byStart = patchB.Item2;
 
-            //Console.WriteLine(axStart);
-            //Console.WriteLine(ayStart);
-
             //Iterate through the graph, initializing the nodes
             for(int i = 0; i < xOverlap; i++)
             {
                 for(int j = 0; j < yOverlap; j++)
                 {
-                    //Compute difference between each pixel in the overlap
-
-                    //Console.WriteLine(bxStart+patchIter+i);
-                    //Console.WriteLine(byStart+patchIter+j);
-
-                    bool test1 = outOfBounds(axStart + i, 0, imageA2.GetLength(0));
-                    bool test2 = outOfBounds(ayStart + j, 0, imageA2.GetLength(1));
-                    bool test3 = outOfBounds(bxStart + patchIter + i, 0, imageB2.GetLength(0));
-                    bool test4 = outOfBounds(byStart + patchIter + j, 0, imageA2.GetLength(1));
-                    /*
-                    if (test1 || test2 || test3 || test4)
-                    {
-                        Console.WriteLine("sup");
-                        Console.WriteLine(axStart+i);
-                        Console.WriteLine(ayStart+j);
-                        Console.WriteLine(bxStart+patchIter+i);
-                        Console.WriteLine(byStart + patchIter + j);
-                        break;
-                    }*/
-
+                    //Obtain color of pixel in the patch
                     Color a = imageA2[axStart+i,ayStart+j];
                     Color b = imageB2[bxStart+patchIter+i, byStart+patchIter+j];
 
+                    //Compute difference between RGB components of each pixel in the overlap
                     int aVal = a.A - b.A > 0 ? a.A - b.A : 0;
                     int rVal = a.R - b.R > 0 ? a.R - b.R : 0;
                     int gVal = a.G - b.G > 0 ? a.G - b.G : 0;
                     int bVal = a.B - b.B > 0 ? a.B - b.B : 0;
                     Color diff = Color.FromArgb(aVal, rVal, gVal, bVal);
-                    //Color diff = Color.FromArgb(a.A - b.A, a.R - b.R, a.G - b.G, a.B - b.B);
 
                     //Create a new node initialied with everything but the neighbors
                     Node newNode = new Node(i, j, diff);
@@ -105,11 +92,10 @@ namespace AnimationImageAnalogy
             return index < min || index >= max;
         }
 
-
         /* Initialize the graph with the neighbors of each pixel. The edge between each
          * pixel and its neighbor is weighted according to the sum of squared differences
          * between the pixel and its neighbor. */
-        public void initializeGraphNeighborsWeights(int xStart, int xEnd, int yStart, int yEnd)
+        public void initializeGraphNeighborsWeights(int xStart, int xEnd, int yStart, int yEnd, bool horizontal)
         {
             //Iterate through the graph, intializing the neighbors for each pixel
             //Weights of the edges between pixels are determined by the SSD between them
@@ -124,6 +110,8 @@ namespace AnimationImageAnalogy
                 for (int j = 0; j < yBound; j++)
                 {
                     Color currentDiff = graph[i,j].diff;
+
+                    /*
                     if (i - 1 >= 0)
                     {
                         if (graph[i - 1,j] == null)
@@ -137,50 +125,100 @@ namespace AnimationImageAnalogy
 
                         graph[i, j].addNeighbor(graph[i-1, j], ssd);
                     }
+                    */
 
-                    if (i + 1 < xBound)
+                    if(horizontal)
                     {
-                        if (graph[i + 1,j] == null)
+                        if (i + 1 < xBound)
                         {
-                            break;
-                        }
-                        //There is a neighbor to the right
-                        Color neighborDiff = graph[i + 1, j].diff;
-                        int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
-                        + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+                            if (graph[i + 1, j] == null)
+                            {
+                                break;
+                            }
+                            //There is a neighbor directly to the right
+                            Color neighborDiff = graph[i + 1, j].diff;
+                            int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                            + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
 
-                        graph[i, j].addNeighbor(graph[i + 1, j], ssd);
+                            graph[i, j].addNeighbor(graph[i + 1, j], ssd);
+
+                            //There is a neighbor to the top-right diagonal
+                            if (j - 1 >= 0)
+                            {
+                                neighborDiff = graph[i + 1, j - 1].diff;
+                                ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                                + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+
+                                graph[i, j].addNeighbor(graph[i + 1, j - 1], ssd);
+                            }
+
+                            //There is a neighbor to the bottom-right diagonal
+                            if (j + 1 < yBound)
+                            {
+                                neighborDiff = graph[i + 1, j + 1].diff;
+                                ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                                + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+
+                                graph[i, j].addNeighbor(graph[i + 1, j + 1], ssd);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        /*
+                        if (j - 1 >= 0)
+                        {
+                            if (graph[i, j - 1] == null)
+                            {
+                                break;
+                            }
+                            //There is a neighbor to the top
+                            Color neighborDiff = graph[i, j - 1].diff;
+                            int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                            + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+
+                            graph[i, j].addNeighbor(graph[i, j - 1], ssd);
+                        }*/
+
+                        if (j + 1 < yBound)
+                        {
+                            //There is a neighbor to the bottom
+                            //Console.WriteLine(i);
+                            //Console.WriteLine(j + 1);
+                            if (graph[i, j + 1] == null)
+                            {
+                                break;
+                            }
+                            Color neighborDiff = graph[i, j + 1].diff;
+                            int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                            + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+
+                            graph[i, j].addNeighbor(graph[i, j + 1], ssd);
+
+                            //Neighbor to the bottom left
+                            if(i - 1 >= 0)
+                            {
+                                neighborDiff = graph[i - 1, j + 1].diff;
+                                ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                                + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+
+                                graph[i, j].addNeighbor(graph[i - 1, j + 1], ssd);
+                            }
+
+                            //Neighbor to the bottom right
+                            if (i + 1 < xBound)
+                            {
+                                neighborDiff = graph[i + 1, j + 1].diff;
+                                ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
+                                + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
+
+                                graph[i, j].addNeighbor(graph[i + 1, j + 1], ssd);
+                            }
+
+                        }
                     }
 
-                    if (j - 1 >= 0)
-                    {
-                        if (graph[i, j - 1] == null)
-                        {
-                            break;
-                        }
-                        //There is a neighbor to the top
-                        Color neighborDiff = graph[i, j-1].diff;
-                        int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
-                        + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
-
-                        graph[i, j].addNeighbor(graph[i, j-1], ssd);
-                    }
-
-                    if (j + 1 < yBound)
-                    {
-                        //There is a neighbor to the bottom
-                        //Console.WriteLine(i);
-                        //Console.WriteLine(j + 1);
-                        if(graph[i,j+1] == null)
-                        {
-                            break;
-                        }
-                        Color neighborDiff = graph[i, j+1].diff;
-                        int ssd = (int)(Math.Pow((currentDiff.A - neighborDiff.A), 2) + Math.Pow((currentDiff.R - neighborDiff.R), 2)
-                        + Math.Pow((currentDiff.G - neighborDiff.G), 2) + Math.Pow((currentDiff.B - neighborDiff.B), 2));
-
-                        graph[i, j].addNeighbor(graph[i, j+1], ssd);
-                    }
+                    
 
                     //Console.WriteLine("NEIGHBORS COUNT:" + graph[i, j].neighbors.Count);
                 }
@@ -191,14 +229,23 @@ namespace AnimationImageAnalogy
         /* Helper function for findShortestPath, performs Dijkstra's algorithm */
         private void dijkstra(Node current, Node end, bool horizontal)
         {
+            //horizontal = !horizontal;
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
-            //Console.WriteLine(pos);
             shortestPath.Enqueue(pos);
-            //Console.WriteLine(pos);
+            if (horizontal)
+            {
+                shortestPathArray[current.x] = current.y;
+            } else
+            {
+                shortestPathArray[current.y] = current.x;
+            }
+            
+            Console.WriteLine("SHORTEST PATH pos: " + pos);
 
             if (current.x == end.x && current.y == end.y)
             {
-                //Destination node is visited
+                //Destination node is visited, so return
+                Console.WriteLine("CORRECT END REACHED!");
                 current.visited = true;
                 return;
             }
@@ -213,16 +260,20 @@ namespace AnimationImageAnalogy
                 if(horizontal)
                 {
                     //Horizontal dijkstra
-                    nextLevel = n.Item1.y;
-                    currentLevel = current.y;
+                    nextLevel = n.Item1.x;
+                    currentLevel = current.x;
                 } else
                 {
                     //Vertical dijkstra
-                    nextLevel = n.Item1.x;
-                    currentLevel = current.x;
+                    nextLevel = n.Item1.y;
+                    currentLevel = current.y;
                 }
-                if (n.Item1.visited == false && nextLevel >= currentLevel)
+
+                
+                if (n.Item1.visited == false && nextLevel > currentLevel)
                 {
+                    //Console.WriteLine("nextLevel: " + nextLevel);
+                    //Console.WriteLine("currentLevel: " + currentLevel);
                     //Calculate tentative distance for this node
                     int tentativeDistance = current.distance + n.Item2;
 
@@ -252,6 +303,7 @@ namespace AnimationImageAnalogy
             if(smallestDistNode == null){
                 //we should never get here because we're not doing a complete traversal
                 //but just in case
+                Console.WriteLine("We should never get here because we're not doing a complete traversal");
                 return;
             }
             dijkstra(smallestDistNode.Item1, end, horizontal);
@@ -262,7 +314,7 @@ namespace AnimationImageAnalogy
             start.distance = 0;
             start.visited = true;
 
-            dijkstra(start,end, horizontal);
+            dijkstra(start, end, horizontal);
         }
 
     }

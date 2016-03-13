@@ -13,7 +13,7 @@ namespace AnimationImageAnalogy
         private Color[,] imageA1;
         private Color[,] imageA2;
 
-        /* Determines the pixel dimension of the patches we are iterating by */
+        /* The pixel dimension of the patches we are iterating by */
         private int patchDimension;
 
         /* Determines number of pixels we iterate by each time */
@@ -27,7 +27,6 @@ namespace AnimationImageAnalogy
             this.patchDimension = patchDimension;
             this.patchIter = patchIter;
         }
-
 
         /* Compute patch value
          * patchLocA is the top left corner of the patch in A
@@ -61,7 +60,6 @@ namespace AnimationImageAnalogy
             }
             return patchValue;
         }
-
 
         /* Returns pixel at the top left corner of the patch in A1 which is the closest match
          * to the current patch in B1. */
@@ -206,7 +204,6 @@ namespace AnimationImageAnalogy
             return imageB2;
         }
 
-
         /* Copies patch by performing average in the overlap */
         private Color[,] copyPatchAverage(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY)
         {
@@ -246,17 +243,16 @@ namespace AnimationImageAnalogy
         //bX and bY are the top left corner of the patch
         private Color[,] copyPatchDijkstra(Color[,] imageA2, Color[,] imageB2, Tuple<int,int> patchA, int bX, int bY, bool horizontal)
         {
-
             /* Calculate bounds of patch */
             int beginX = patchA.Item1;
             int endX = beginX + patchDimension;
             int beginY = patchA.Item2;
             int endY = beginY + patchDimension;
 
-            //Initiaze the patch graph in preparation for finding the shortest path
+            //Initialize the patch graph in preparation for finding the shortest path
             PatchGraph pg = new PatchGraph(patchDimension, patchIter);
             pg.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, horizontal);
-            pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
+            pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY, horizontal);
 
             //Find the shortest path using dijkstra's for the x overlap
             //TODO: Right now it finds shortest path between the two midpoints, but
@@ -269,7 +265,7 @@ namespace AnimationImageAnalogy
             {
                 mid = pg.graph.GetLength(0) / 2;
                 start = pg.graph[mid, 0];
-                end = pg.graph[mid, pg.graph.GetLength(1) - 1];
+                end = pg.graph[mid, pg.graph.GetLength(1)-1];
             } else
             {
                 mid = pg.graph.GetLength(1) / 2;
@@ -277,52 +273,74 @@ namespace AnimationImageAnalogy
                 end = pg.graph[pg.graph.GetLength(0)-1, mid];
             }
 
-            //Node start = pg.graph[beginX + (patchDimension / 2), beginY];
-            //Node end = pg.graph[beginX + (patchDimension / 2), endY];
             pg.findShortestPath(start, end, horizontal);
             Queue<Tuple<int,int>> shortestPath = pg.shortestPath;
-
-            //Console.WriteLine("Horizontal: " + horizontal);
-            //Console.WriteLine("SHORTESST PATH LENGTH: " + shortestPath.Count);
-
-            //Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
             
             //Loop through the patches. Depending on which side of the
             //path the pixel is on, choose to keep either the color value
-            //from A or from B
-
-            //Pixels on the path will be taken from B
-            
+            //from A or from B. Pixels on the path will be taken from B.
             int currentBX = bX;
             int currentBY = bY;
             Tuple<int,int> pathNode = shortestPath.Dequeue();
 
-            for (int i = beginX; i < endX; i++)
+            //for (int i = beginX; i < endX; i++)
+            for(int j = beginY; j < endY; j++)
             {
+                //Console.WriteLine("PATHNODE: " + pathNode);
                 currentBY = bY;
-                for (int j = beginY; j < endY; j++)
+                for (int i = beginX; i < endX; i++)
+                //for (int j = beginY; j < endY; j++)
                 {
                     if(horizontal)
                     {
+                        //Console.WriteLine("i:" + i);
+                        //Console.WriteLine("j:" + j);
+                        //Console.WriteLine("pathNode" + pathNode);
                         if (i - beginX > pathNode.Item1)
                         {
+                            //Console.WriteLine("right side of path");
+                            //If we're on the right side of the path, put in values from imageA2
                             imageB2[currentBX, currentBY] = imageA2[i, j];
                             //Console.WriteLine("YO SUP!!!!!!!!!!!!!");
                         } else
                         {
+                           //imageB2[currentBX, currentBY] = Color.Aqua;
+                           //Console.WriteLine("left side of path");
+                            //If we're on the left side of the path, leave it as is
                             //Console.WriteLine("hello?");
                         }
                     } else
                     {
                         if (j - beginY > pathNode.Item2)
                         {
-                            if(i > beginX + patchDimension/2)
+                            imageB2[currentBX, currentBY] = imageA2[i, j];
+                            break;
+                            //Console.WriteLine("below the path");
+                            //We're below the path, so put in values from imageA2
+                            if (j < beginY + patchDimension / 2)
                             {
-                                imageB2[currentBX, currentBY] = imageA2[i, j];
+                                //Do a 50-50 blend in this area where the dijkstra's overlap
+                                Color current = imageB2[currentBX, currentBY];
+                                Color aColor = imageA2[i, j];
+                                int aVal = (current.A + aColor.A) / 2;
+                                int rVal = (current.R + aColor.R) / 2;
+                                int gVal = (current.G + aColor.G) / 2;
+                                int bVal = (current.B + aColor.B) / 2;
+                                Color average = Color.FromArgb(aVal, rVal, gVal, bVal);
+                                imageB2[currentBX, currentBY] = average;
+                            } else
+                            {
+                                if (i >= beginX + patchDimension / 2)
+                                {
+                                    imageB2[currentBX, currentBY] = imageA2[i, j];
+                                }
                             }
-                            //Console.WriteLine("YO SUP!!!!!!!!!!!!!");
+                            
                         } else
                         {
+                            imageB2[currentBX, currentBY] = Color.Aqua;
+                            break;
+                            //Console.WriteLine("above the path");
                             if (j < beginY + patchDimension / 2)
                             {
                                 //Do a 50-50 blend in this area where the dijkstra's overlap
@@ -353,7 +371,7 @@ namespace AnimationImageAnalogy
                         {
                             pathNode = shortestPath.Dequeue();
                         }
-                        //Console.WriteLine(pathNode.Item2);
+                        //Console.WriteLine("pathNode:" + pathNode);
                     }
                 }
                 else
@@ -369,11 +387,11 @@ namespace AnimationImageAnalogy
                     }
                 }
             }
+            //Console.WriteLine("PATCH ENDED!!!!!!");
             return imageB2;
         }
 
-
-        private Color[,] copyPatchDijkstra2(Color[,] imageA2, Color[,] imageB2, Tuple<int, int> patchA, int bX, int bY)
+        private Color[,] copyPatchDijkstraNew(Color[,] imageA2, Color[,] imageB2, Tuple<int, int> patchA, Tuple<int,int> patchB, bool horizontal)
         {
             /* Calculate bounds of patch */
             int beginX = patchA.Item1;
@@ -381,169 +399,174 @@ namespace AnimationImageAnalogy
             int beginY = patchA.Item2;
             int endY = beginY + patchDimension;
 
-            //Initiaze the patch graph in preparation for finding the shortest path
-            PatchGraph pgh = new PatchGraph(patchDimension, patchIter);
-            PatchGraph pgv = new PatchGraph(patchDimension, patchIter);
+            //Initialize the patch graph in preparation for finding the shortest path
+            PatchGraph pg = new PatchGraph(patchDimension, patchIter);
+            pg.createGraph(imageB2, imageA2, patchB, patchA, horizontal);
+            pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY, horizontal);
 
-            pgh.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, true);
-            pgv.createGraph(imageB2, imageA2, new Tuple<int, int>(bX, bY), patchA, false);
-
-            pgh.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
-            pgv.initializeGraphNeighborsWeights(beginX, endX, beginY, endY);
-
-            //Find the shortest path using dijkstra's for the x overlap
+            //Find the shortest path using dijkstra's
             //TODO: Right now it finds shortest path between the two midpoints, but
             //we should actually do it between the smallest value in the rows
             int mid;
             Node start;
             Node end;
 
-            mid = pgh.graph.GetLength(0) / 2;
-            start = pgh.graph[mid, 0];
-            end = pgh.graph[mid, pgh.graph.GetLength(1) - 1];
-            
+            if (horizontal)
+            {
+                //We're finding a horizontal line
+                mid = pg.graph.GetLength(1) / 2;
+                start = pg.graph[0, mid];
+                end = pg.graph[pg.graph.GetLength(0) - 1, mid];
+            }
+            else
+            {
+                //We're finding a vertical line
+                mid = pg.graph.GetLength(0) / 2;
+                start = pg.graph[mid, 0];
+                end = pg.graph[mid, pg.graph.GetLength(1) - 1];
+            }
 
-            //Node start = pg.graph[beginX + (patchDimension / 2), beginY];
-            //Node end = pg.graph[beginX + (patchDimension / 2), endY];
-            pgh.findShortestPath(start, end, true);
-            Queue<Tuple<int, int>> shortestPathH = pgh.shortestPath;
-
-            mid = pgv.graph.GetLength(1) / 2;
-            start = pgv.graph[0, mid];
-            end = pgv.graph[pgv.graph.GetLength(0) - 1, mid];
-            pgv.findShortestPath(start, end, false);
-            Queue<Tuple<int, int>> shortestPathV = pgv.shortestPath;
-
-            //Console.WriteLine("Horizontal: " + horizontal);
-            //Console.WriteLine("SHORTESST PATH LENGTH: " + shortestPath.Count);
-
-            //Console.WriteLine("SHORTEST PATH LENGTH:" + shortestPath.Count);
+            //Find the shortest path
+            pg.findShortestPath(start, end, horizontal);
+            Queue<Tuple<int, int>> shortestPath = pg.shortestPath;
+            int[] shortestPathArray = pg.shortestPathArray;
 
             //Loop through the patches. Depending on which side of the
             //path the pixel is on, choose to keep either the color value
-            //from A or from B
+            //from A or from B. Pixels on the path will be taken from B.
+            int bX = patchB.Item1;
+            int bY = patchB.Item2;
+            Tuple<int, int> pathNode = shortestPath.Dequeue();
 
-            //Pixels on the path will be taken from B
-
-            int currentBX = bX;
-            int currentBY = bY;
-            Tuple<int, int> pathNodeH = shortestPathH.Dequeue();
-            Tuple<int, int> pathNodeV = shortestPathV.Dequeue();
-
-            for (int i = beginX; i < endX; i++)
+            //for (int y = beginY; y < endY; y++)
+            for(int x = beginX; x < endX; x++)
             {
-                currentBY = bY;
-                for (int j = beginY; j < endY; j++)
+                bY = patchB.Item2;
+                //for (int x = beginX; x < endX; x++)
+                for(int y = beginY; y < endY; y++)
                 {
-                    if( i - beginX >= pathNodeH.Item1 && j - beginY >= pathNodeV.Item1)
+                    if (horizontal)
                     {
-                        imageB2[currentBX, currentBY] = imageA2[i, j];
-                    }
+                        //Console.WriteLine("x: " + x);
+                        //Console.WriteLine("y: " + y);
 
-                    //otherwise leave imageB2 as it is
-                    currentBY++;
-                }
-                currentBX++;
-
-                    int currentNodeY = pathNodeH.Item2;
-                    if (currentNodeY != patchDimension - 1)
-                    {
-                        while (pathNodeH.Item2 == currentNodeY)
+                        //If our path is horizontal (we are tiling vertically)
+                        //if (y - beginY > pathNode.Item2 || patchB.Item2 == 0)
+                        if (y - beginY > shortestPathArray[x - beginX] || patchB.Item2 == 0)
                         {
-                            pathNodeH = shortestPathH.Dequeue();
+                            //If we're below the path, put in color from imageA2
+                            //Also if we're at the top of the image we want all of A2
+                            imageB2[bX,bY] = imageA2[x, y];
+                        } else
+                        {
+                            //If we're above or on the path, keep imageB2 as it is
+                            imageB2[bX, bY] = Color.Aqua;
                         }
-                        //Console.WriteLine(pathNode.Item2);
+                    } else
+                    {
+                        //If our path is vertical (we are tiling horizontally)
+                        //if (x - beginX > pathNode.Item1 || patchB.Item1 == 0)
+                        if (x - beginX > shortestPathArray[y - beginY] || patchB.Item1 == 0)
+                        {
+                            //We're to the right of the path, put in color from imageA2
+                            //Also if we're at the left of the image we want all of B2
+                            imageB2[bX, bY] = imageA2[x, y];
+                        } else
+                        {
+                            //We're to the left of the path, keep imageB2 as it is
+                            imageB2[bX, bY] = Color.Aqua;
+                            //if (x == beginX)
+                            //{
+                             //   imageB2[bX, bY] = Color.Aqua;
+                            //}
+                        }
                     }
-
-                    int currentNodeX = pathNodeV.Item1;
+                    bY++;
+                }
+                bX++;
+                //Make sure the shortest path didn't include any weird detours (it should always be advancing)
+                //THIS SHOULD PROBABLY BE ACCOUNTED FOR WHEN WE MAKE THE SHORTEST PATH ITSELF
+                if (horizontal)
+                {
+                    //Console.WriteLine(shortestPath.Count);
+                    int currentNodeX = pathNode.Item1;
                     if (currentNodeX != patchDimension - 1)
                     {
-                        while (pathNodeV.Item1 == currentNodeX)
-                        {
-                            pathNodeV = shortestPathV.Dequeue();
-                        }
-                        //Console.WriteLine(pathNode.Item2);
+                        //while (pathNode.Item1 == currentNodeX && shortestPath.Count != 0)
+                        //{
+                            //pathNode = shortestPath.Dequeue();
+                            //Console.WriteLine(currentNodeX);
+                        //}
+                        //Console.WriteLine("pathNode test: " + pathNode);
+                        pathNode = shortestPath.Dequeue();
                     }
-                
+                }
+                else
+                {
+                    int currentNodeY = pathNode.Item2;
+                    if (currentNodeY != patchDimension - 1)
+                    {
+                        //while (pathNode.Item2 == currentNodeY && shortestPath.Count != 0)
+                        //{
+                            pathNode = shortestPath.Dequeue();
+                        //}
+                        //Console.WriteLine("pathNode test: " + pathNode);
+                    }
+                }
             }
             return imageB2;
         }
 
-
         /* 
-         * Create an image analogy for the given image using the source pair.
+         * Create an image analogy (output image) for the given image using the source pair.
+         *
+         * imageB1: The second simple image we want to generate a complex image for
+         * patchNum: The number of random patches we iterate through to find the closest match
          */
         public Color[,] CreateImageAnalogy(Color[,] imageB1, int patchNum)
         {
             int width = imageB1.GetLength(0);
             int height = imageB1.GetLength(1);
             Color[,] imageB2 = new Color[width, height];
-
             Tuple<int, int> bestMatch = null;
 
-            
+            //TESTING TO MAKE SURE DIJKSTRA ACTUALLY WORKS
+            int patchIterX = patchIter;
+            int patchIterY = patchIter;
+
             /*Iterate through patches finding a best match for each */
-
-
-            for (int i = 0; i < width; i += patchIter)
+            for (int col = 0; col < width; col += patchIterX)
             {
-                if (i + patchDimension + patchIter >= width)
+                if (col > 20)
+                    break;
+                //Make sure we're not out of column range
+                //if (col + patchDimension >= width)
+                //SOMETHING IS PROBABLY WRONG HERE SINCE IT SHOULD WORK WITH JUST PATCHDIMENSION
+                if (col + patchDimension + patchIter >= width)
                 {
                     break;
                 }
-
-                if( i > 5)
+                //IT'S PLUS ONE HERE TO MAKE A LINE
+                for (int row = 0; row < height; row += patchIterY)
                 {
-                    //break;
-                }
-
-                for (int j = 0; j < height; j += patchIter)
-                {
-                    if(j + patchDimension + patchIter >= height)
+                    //Make sure we're not out of bounds for y
+                    //if(row + patchDimension >= height)
+                    if (row + patchDimension + patchIter >= height)
                     {
                         break;
                     }
+                    //Find the best random patch, testing out patchNum amount of random patches
+                    bestMatch = BestRandomPatch(imageB1, col,row, patchNum);
+                    //Copy the patch, first with horizontal overlap then with vertical overlap
 
-                    //bestMatch = BestPatchMatch(imageB1, i, j);
-                    bestMatch = BestRandomPatch(imageB1, i,j, patchNum);
-                    //Console.WriteLine("Match x: " + bestMatch.Item1);
-                    //Console.WriteLine("Match y: " + bestMatch.Item2);
+                    Tuple<int,int> currentBPatch = new Tuple<int, int>(col, row);
+                    //imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
+                    imageB2 = copyPatchDijkstraNew(imageA2, imageB2, bestMatch, currentBPatch, false);
 
-
-                    //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);
-                    //imageB2 = copyPatchOnlyRight(imageA2, imageB2, bestMatch, i, j);
-                    //imageB2 = copyPatchAverage(imageA2, imageB2, bestMatch, i, j);
-
-
-
-                    //imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
-
-                    //Console.WriteLine("Horizontal shortest path");
-                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, true);
-                    //Console.WriteLine("Vertical shortest path");
-                    imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
-                    //imageB2 = copyPatchDijkstra2(imageA2, imageB2, bestMatch, i, j);
-
-
-                    Console.WriteLine("Current patch index: " + i + ", " + j);
-                    
+                    Console.WriteLine("Current patch index: " + col + ", " + row);   
                 }
-                //Console.WriteLine("Current patch i: " + i);
-
             }
-            /*
-            for (int i = 0; i < width; i += patchDimension){
-                for (int j = 0; j < height; j += patchDimension) {
-                    bestMatch = BestPatchMatch(imageB1, i, j);
-                    imageB2 = copyPatch(imageA2, imageB2, bestMatch, i, j);
-                    //Console.WriteLine("Current patch index: " + i + ", " + j);
-                }
-            }*/
-
             return imageB2;
         }
-
-
-
     }
 }
