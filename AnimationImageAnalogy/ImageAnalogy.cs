@@ -457,9 +457,10 @@ namespace AnimationImageAnalogy
                             //imageB2[bX, bY] = Color.Aqua;
                             newColor = imageB2[bX, bY];
                         }
-
+                        imageB2[bX, bY] = newColor;
                         //Do 50-50 blend if we're in an overlapping region
                         //Make sure we don't do this if we're on the leftmost edge of the image
+                        /*
                         if (patchB.Item1 != 0 && x - beginX < patchDimension/2 )
                         {
                             Color average = blendAverage(newColor, imageB2[bX,bY]);
@@ -467,7 +468,7 @@ namespace AnimationImageAnalogy
                         } else
                         {
                             imageB2[bX, bY] = newColor;
-                        }
+                        }*/
                     } else
                     {
                         //If our path is vertical (we are tiling horizontally)
@@ -482,6 +483,26 @@ namespace AnimationImageAnalogy
                             //We're to the left of the path, keep imageB2 as it is
                             //imageB2[bX, bY] = Color.Aqua;
                             newColor = imageB2[bX, bY];
+                        }
+
+                        if(patchB.Item1 != 0)
+                        {
+                            if(patchB.Item2 == 0)
+                            {
+                                imageB2[bX, bY] = newColor;
+                            } else
+                            {
+                                if(x - beginX < patchDimension - patchIter && y - beginY < patchDimension - patchIter)
+                                {
+                                    //The corner where we have to average
+                                    Color average = blendAverage(newColor, imageB2[bX, bY]);
+                                    imageB2[bX, bY] = average;
+                                    //imageB2[bX, bY] = Color.Aqua;
+                                }
+                            }
+                        } else
+                        {
+                            imageB2[bX, bY] = newColor;
                         }
                         //Do 50-50 blend if we're in an overlapping region
                         //Make sure we don't do this if we're on the leftmost edge of the image
@@ -502,8 +523,8 @@ namespace AnimationImageAnalogy
                         {
                             imageB2[bX, bY] = newColor;
                         }*/
-                        Color average = blendAverage(newColor, imageB2[bX, bY]);
-                        imageB2[bX, bY] = average;
+                        //Color average = blendAverage(newColor, imageB2[bX, bY]);
+                        //imageB2[bX, bY] = average;
                     }
                     bY++;
                 }
@@ -511,6 +532,277 @@ namespace AnimationImageAnalogy
             }
             return imageB2;
         }
+
+        private Color[,] copyPatchDijkstraColorTest(Color[,] imageA2, Color[,] imageB2, Tuple<int, int> patchA, Tuple<int, int> patchB, bool horizontal)
+        {
+            int patchOverlap = patchDimension - patchIter;
+            /* Calculate bounds of patch */
+            int beginX = patchA.Item1;
+            int endX = beginX + patchDimension;
+            int beginY = patchA.Item2;
+            int endY = beginY + patchDimension;
+
+            //Initialize the patch graph in preparation for finding the shortest path
+            PatchGraph pg = new PatchGraph(patchDimension, patchIter);
+            pg.createGraph(imageB2, imageA2, patchB, patchA, horizontal);
+            pg.initializeGraphNeighborsWeights(beginX, endX, beginY, endY, horizontal);
+
+            //Find the shortest path using dijkstra's
+            //TODO: Right now it finds shortest path between the two midpoints, but
+            //we should actually do it between the smallest value in the rows
+            int mid;
+            Node start;
+            Node end;
+
+            if (horizontal)
+            {
+                //We're finding a horizontal line
+                mid = pg.graph.GetLength(1) / 2;
+                start = pg.graph[0, mid];
+                end = pg.graph[pg.graph.GetLength(0) - 1, mid];
+            }
+            else
+            {
+                //We're finding a vertical line
+                mid = pg.graph.GetLength(0) / 2;
+                start = pg.graph[mid, 0];
+                end = pg.graph[mid, pg.graph.GetLength(1) - 1];
+            }
+
+            //Find the shortest path
+            pg.findShortestPath(start, end, horizontal);
+            int[] shortestPathArray = pg.shortestPathArray;
+
+            //Loop through the patches. Depending on which side of the
+            //path the pixel is on, choose to keep either the color value
+            //from A or from B. Pixels on the path will be taken from B.
+            int bX = patchB.Item1;
+            int bY = patchB.Item2;
+
+            for (int x = beginX; x < endX; x++)
+            {
+                bY = patchB.Item2;
+                for (int y = beginY; y < endY; y++)
+                {
+                    //Color newColor;
+                    if (patchB.Item1 == 0)
+                    {
+                        //We are on the leftmost side of the image so only do horizontal overlap logic
+                        imageB2[bX, bY] = Color.White;
+                    }
+                    else if (patchB.Item2 == 0)
+                    {
+                        //We are on the topmost side of the image so only do vertical overlap logic
+                        imageB2[bX, bY] = Color.Black;
+                    }
+                    else
+                    {
+                        //Every other case, inside the image
+                        if (x - beginX < patchOverlap && y - beginY < patchOverlap)
+                        {
+                            //Top left corner where we need to blend
+                            imageB2[bX, bY] = Color.Red;
+                        }
+                        else if (x - beginX < patchOverlap)
+                        {
+                            //Bottom left corner where we need vertical overlap logic
+                            imageB2[bX, bY] = Color.Blue;
+                        }
+                        else if (y - beginY < patchOverlap)
+                        {
+                            //Top right corner where we need horizontal overlap logic
+                            imageB2[bX, bY] = Color.Yellow;
+                        }
+                        else
+                        {
+                            //Bottom right corner where we need imageA2 values
+                            imageB2[bX, bY] = Color.Aqua;
+                        }
+                    }
+                    bY++;
+                }
+                bX++;
+            }
+            return imageB2;
+        }
+
+        private Color[,] copyPatchDijkstraSimultaneous(Color[,] imageA2, Color[,] imageB2, Tuple<int, int> patchA, Tuple<int, int> patchB, bool horizontal)
+        {
+            int patchOverlap = patchDimension - patchIter;
+            /* Calculate bounds of patch */
+            int beginX = patchA.Item1;
+            int endX = beginX + patchDimension;
+            int beginY = patchA.Item2;
+            int endY = beginY + patchDimension;
+
+            //Initialize the patch graph in preparation for finding the horizontal shortest path
+            PatchGraph pgHorizontal = new PatchGraph(patchDimension, patchIter);
+            pgHorizontal.createGraph(imageB2, imageA2, patchB, patchA, true);
+            pgHorizontal.initializeGraphNeighborsWeights(beginX, endX, beginY, endY, true);
+
+            //Initialze the patch graph in prep for finding the vertical shortest path
+            PatchGraph pgVertical = new PatchGraph(patchDimension, patchIter);
+            pgVertical.createGraph(imageB2, imageA2, patchB, patchA, false);
+            pgVertical.initializeGraphNeighborsWeights(beginX, endX, beginY, endY, false);
+
+            //Find the shortest path using dijkstra's
+            //TODO: Right now it finds shortest path between the two midpoints, but
+            //we should actually do it between the smallest value in the rows
+            int midH = pgHorizontal.graph.GetLength(1) / 2;
+            Node startH = pgHorizontal.graph[0, midH];
+            Node endH = pgHorizontal.graph[pgHorizontal.graph.GetLength(0) - 1, midH];
+            
+            int midV = pgVertical.graph.GetLength(0) / 2;
+            Node startV = pgVertical.graph[midV, 0];
+            Node endV = pgVertical.graph[midV, pgVertical.graph.GetLength(1) - 1];
+
+            //Find the shortest paths
+            pgHorizontal.findShortestPath(startH, endH, true);
+            pgVertical.findShortestPath(startV, endV, false);
+            int[] shortestPathArrayH = pgHorizontal.shortestPathArray;
+            int[] shortestPathArrayV = pgVertical.shortestPathArray;
+
+            //Loop through the patches. Depending on which side of the
+            //path the pixel is on, choose to keep either the color value
+            //from A or from B. Pixels on the path will be taken from B.
+            int bX = patchB.Item1;
+            int bY = patchB.Item2;
+
+            for (int x = beginX; x < endX; x++)
+            {
+                bY = patchB.Item2;
+                for (int y = beginY; y < endY; y++)
+                {
+                    //Color newColor;
+                    if(patchB.Item1 == 0)
+                    {
+                        //We are on the leftmost side of the image so only do horizontal overlap logic
+                        //imageB2[bX, bY] = Color.White;
+                        //If our path is horizontal (we are tiling vertically)
+                        if (y - beginY > shortestPathArrayH[x - beginX] || patchB.Item2 == 0)
+                        {
+                            //If we're below the path, put in color from imageA2
+                            //Also if we're at the top of the image we want all of A2
+                            imageB2[bX, bY] = imageA2[x, y];
+                            //newColor = imageA2[x, y];
+                        }
+                        else
+                        {
+                            //If we're above or on the path, keep imageB2 as it is
+                            //imageB2[bX, bY] = Color.Aqua;
+                            //newColor = imageB2[bX, bY];
+                        }
+                    } else if(patchB.Item2 == 0)
+                    {
+                        //We are on the topmost side of the image so only do vertical overlap logic
+                        //imageB2[bX, bY] = Color.Black;
+                        //If our path is vertical (we are tiling horizontally)
+                        if (x - beginX > shortestPathArrayV[y - beginY] || patchB.Item1 == 0)
+                        {
+                            //We're to the right of the path, put in color from imageA2
+                            //Also if we're at the left of the image we want all of B2
+                            imageB2[bX, bY] = imageA2[x, y];
+                            //newColor = imageA2[x, y];
+                        }
+                        else
+                        {
+                            //We're to the left of the path, keep imageB2 as it is
+                            //imageB2[bX, bY] = Color.Aqua;
+                            //newColor = imageB2[bX, bY];
+                        }
+                    } else
+                    {
+                        //Every other case, inside the image
+                        if(x-beginX < patchOverlap && y-beginY < patchOverlap)
+                        {
+                            //Top left corner where we need to blend
+                            //imageB2[bX, bY] = Color.Red;
+                            Color horizontalColor;
+                            Color verticalColor;
+                            //If our path is vertical (we are tiling horizontally)
+                            if (x - beginX > shortestPathArrayV[y - beginY] || patchB.Item1 == 0)
+                            {
+                                //We're to the right of the path, put in color from imageA2
+                                //Also if we're at the left of the image we want all of B2
+                                //imageB2[bX, bY] = imageA2[x, y];
+                                verticalColor = imageA2[x, y];
+                            }
+                            else
+                            {
+                                //We're to the left of the path, keep imageB2 as it is
+                                //imageB2[bX, bY] = Color.Aqua;
+                                verticalColor = imageB2[bX, bY];
+                            }
+
+                            //If our path is horizontal (we are tiling vertically)
+                            if (y - beginY > shortestPathArrayH[x - beginX] || patchB.Item2 == 0)
+                            {
+                                //If we're below the path, put in color from imageA2
+                                //Also if we're at the top of the image we want all of A2
+                                //imageB2[bX, bY] = imageA2[x, y];
+                                horizontalColor = imageA2[x, y];
+                            }
+                            else
+                            {
+                                //If we're above or on the path, keep imageB2 as it is
+                                //imageB2[bX, bY] = Color.Aqua;
+                                horizontalColor = imageB2[bX, bY];
+                            }
+
+                            imageB2[bX, bY] = blendAverage(horizontalColor, verticalColor);
+
+                        } else if (x-beginX < patchOverlap)
+                        {
+                            //Bottom left corner where we need vertical overlap logic
+                            //imageB2[bX, bY] = Color.Blue;
+
+                            //If our path is vertical (we are tiling horizontally)
+                            if (x - beginX > shortestPathArrayV[y - beginY] || patchB.Item1 == 0)
+                            {
+                                //We're to the right of the path, put in color from imageA2
+                                //Also if we're at the left of the image we want all of B2
+                                imageB2[bX, bY] = imageA2[x, y];
+                                //newColor = imageA2[x, y];
+                            }
+                            else
+                            {
+                                //We're to the left of the path, keep imageB2 as it is
+                                //imageB2[bX, bY] = Color.Aqua;
+                                //newColor = imageB2[bX, bY];
+                            }
+                        } else if (y-beginY < patchOverlap)
+                        {
+                            //Top right corner where we need horizontal overlap logic
+
+                            //imageB2[bX, bY] = Color.Yellow;
+                            //If our path is horizontal (we are tiling vertically)
+                            if (y - beginY > shortestPathArrayH[x - beginX] || patchB.Item2 == 0)
+                            {
+                                //If we're below the path, put in color from imageA2
+                                //Also if we're at the top of the image we want all of A2
+                                imageB2[bX, bY] = imageA2[x, y];
+                                //newColor = imageA2[x, y];
+                            }
+                            else
+                            {
+                                //If we're above or on the path, keep imageB2 as it is
+                                //imageB2[bX, bY] = Color.Aqua;
+                                //newColor = imageB2[bX, bY];
+                            }
+                        } else
+                        {
+                            //Bottom right corner where we need imageA2 values
+                            //imageB2[bX, bY] = Color.Aqua;
+                            imageB2[bX, bY] = imageA2[x, y];
+                        }
+                    }
+                    bY++;
+                }
+                bX++;
+            }
+            return imageB2;
+        }
+
 
         /*
          * Do a 50-50 blend of colors
@@ -548,7 +840,7 @@ namespace AnimationImageAnalogy
             /*Iterate through patches finding a best match for each */
             for (int col = 0; col < width; col += patchIterX)
             {
-                //if (col > 20)
+                //if (col > 100)
                 //    break;
                 //Make sure we're not out of column range
                 //if (col + patchDimension >= width)
@@ -570,8 +862,8 @@ namespace AnimationImageAnalogy
 
                     //Copy the patch, first with horizontal overlap then with vertical overlap
                     Tuple<int,int> currentBPatch = new Tuple<int, int>(col, row);
-                    imageB2 = copyPatchDijkstraNew(imageA2, imageB2, bestMatch, currentBPatch, true);
-                    imageB2 = copyPatchDijkstraNew(imageA2, imageB2, bestMatch, currentBPatch, false);
+                    imageB2 = copyPatchDijkstraSimultaneous(imageA2, imageB2, bestMatch, currentBPatch, true);
+                    //imageB2 = copyPatchDijkstraNew(imageA2, imageB2, bestMatch, currentBPatch, false);
 
                     Console.WriteLine("Current patch index: " + col + ", " + row);   
                 }
