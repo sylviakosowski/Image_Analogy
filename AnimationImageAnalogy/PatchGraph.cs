@@ -240,12 +240,12 @@ namespace AnimationImageAnalogy
                 shortestPathArray[current.y] = current.x;
             }
             
-            Console.WriteLine("SHORTEST PATH pos: " + pos);
+            //Console.WriteLine("SHORTEST PATH pos: " + pos);
 
             if (current.x == end.x && current.y == end.y)
             {
                 //Destination node is visited, so return
-                Console.WriteLine("CORRECT END REACHED!");
+                //Console.WriteLine("CORRECT END REACHED!");
                 current.visited = true;
                 return;
             }
@@ -303,7 +303,7 @@ namespace AnimationImageAnalogy
             if(smallestDistNode == null){
                 //we should never get here because we're not doing a complete traversal
                 //but just in case
-                Console.WriteLine("We should never get here because we're not doing a complete traversal");
+                //Console.WriteLine("We should never get here because we're not doing a complete traversal");
                 return;
             }
             dijkstra(smallestDistNode.Item1, end, horizontal);

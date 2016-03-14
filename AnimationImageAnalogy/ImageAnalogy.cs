@@ -428,7 +428,6 @@ namespace AnimationImageAnalogy
 
             //Find the shortest path
             pg.findShortestPath(start, end, horizontal);
-            Queue<Tuple<int, int>> shortestPath = pg.shortestPath;
             int[] shortestPathArray = pg.shortestPathArray;
 
             //Loop through the patches. Depending on which side of the
@@ -436,86 +435,98 @@ namespace AnimationImageAnalogy
             //from A or from B. Pixels on the path will be taken from B.
             int bX = patchB.Item1;
             int bY = patchB.Item2;
-            Tuple<int, int> pathNode = shortestPath.Dequeue();
 
-            //for (int y = beginY; y < endY; y++)
             for(int x = beginX; x < endX; x++)
             {
                 bY = patchB.Item2;
-                //for (int x = beginX; x < endX; x++)
                 for(int y = beginY; y < endY; y++)
                 {
+                    Color newColor;
                     if (horizontal)
                     {
-                        //Console.WriteLine("x: " + x);
-                        //Console.WriteLine("y: " + y);
-
                         //If our path is horizontal (we are tiling vertically)
-                        //if (y - beginY > pathNode.Item2 || patchB.Item2 == 0)
                         if (y - beginY > shortestPathArray[x - beginX] || patchB.Item2 == 0)
                         {
                             //If we're below the path, put in color from imageA2
                             //Also if we're at the top of the image we want all of A2
-                            imageB2[bX,bY] = imageA2[x, y];
+                            //imageB2[bX, bY] = imageA2[x, y];
+                            newColor = imageA2[x, y];
                         } else
                         {
                             //If we're above or on the path, keep imageB2 as it is
-                            imageB2[bX, bY] = Color.Aqua;
+                            //imageB2[bX, bY] = Color.Aqua;
+                            newColor = imageB2[bX, bY];
+                        }
+
+                        //Do 50-50 blend if we're in an overlapping region
+                        //Make sure we don't do this if we're on the leftmost edge of the image
+                        if (patchB.Item1 != 0 && x - beginX < patchDimension/2 )
+                        {
+                            Color average = blendAverage(newColor, imageB2[bX,bY]);
+                            imageB2[bX, bY] = average;
+                        } else
+                        {
+                            imageB2[bX, bY] = newColor;
                         }
                     } else
                     {
                         //If our path is vertical (we are tiling horizontally)
-                        //if (x - beginX > pathNode.Item1 || patchB.Item1 == 0)
                         if (x - beginX > shortestPathArray[y - beginY] || patchB.Item1 == 0)
                         {
                             //We're to the right of the path, put in color from imageA2
                             //Also if we're at the left of the image we want all of B2
-                            imageB2[bX, bY] = imageA2[x, y];
+                            //imageB2[bX, bY] = imageA2[x, y];
+                            newColor = imageA2[x, y];
                         } else
                         {
                             //We're to the left of the path, keep imageB2 as it is
-                            imageB2[bX, bY] = Color.Aqua;
-                            //if (x == beginX)
-                            //{
-                             //   imageB2[bX, bY] = Color.Aqua;
-                            //}
+                            //imageB2[bX, bY] = Color.Aqua;
+                            newColor = imageB2[bX, bY];
                         }
+                        //Do 50-50 blend if we're in an overlapping region
+                        //Make sure we don't do this if we're on the leftmost edge of the image
+                        /*
+                        if (patchB.Item1 != 0 && x - beginX < patchDimension / 2 && y - beginY >= patchDimension / 2)
+                        {
+                            //Bottom left corner blending
+                            Color average = blendAverage(newColor, imageB2[bX, bY]);
+                            imageB2[bX, bY] = average;
+                        }
+                        else if (patchB.Item2 != 0 && x - beginX >= patchDimension / 2 && y - beginY < patchDimension / 2)
+                        {
+                            //Upper right corner blending
+                            Color average = blendAverage(newColor, imageB2[bX, bY]);
+                            imageB2[bX, bY] = average;
+                        }
+                        else
+                        {
+                            imageB2[bX, bY] = newColor;
+                        }*/
+                        Color average = blendAverage(newColor, imageB2[bX, bY]);
+                        imageB2[bX, bY] = average;
                     }
                     bY++;
                 }
                 bX++;
-                //Make sure the shortest path didn't include any weird detours (it should always be advancing)
-                //THIS SHOULD PROBABLY BE ACCOUNTED FOR WHEN WE MAKE THE SHORTEST PATH ITSELF
-                if (horizontal)
-                {
-                    //Console.WriteLine(shortestPath.Count);
-                    int currentNodeX = pathNode.Item1;
-                    if (currentNodeX != patchDimension - 1)
-                    {
-                        //while (pathNode.Item1 == currentNodeX && shortestPath.Count != 0)
-                        //{
-                            //pathNode = shortestPath.Dequeue();
-                            //Console.WriteLine(currentNodeX);
-                        //}
-                        //Console.WriteLine("pathNode test: " + pathNode);
-                        pathNode = shortestPath.Dequeue();
-                    }
-                }
-                else
-                {
-                    int currentNodeY = pathNode.Item2;
-                    if (currentNodeY != patchDimension - 1)
-                    {
-                        //while (pathNode.Item2 == currentNodeY && shortestPath.Count != 0)
-                        //{
-                            pathNode = shortestPath.Dequeue();
-                        //}
-                        //Console.WriteLine("pathNode test: " + pathNode);
-                    }
-                }
             }
             return imageB2;
         }
+
+        /*
+         * Do a 50-50 blend of colors
+         */
+        private Color blendAverage(Color a, Color b)
+        {
+            //Color current = imageB2[bX, bY];
+            //Color aColor = imageA2[aX, aY];
+            int aVal = (a.A + b.A) / 2;
+            int rVal = (a.R + b.R) / 2;
+            int gVal = (a.G + b.G) / 2;
+            int bVal = (a.B + b.B) / 2;
+            Color average = Color.FromArgb(aVal, rVal, gVal, bVal);
+            return average;
+        }
+
 
         /* 
          * Create an image analogy (output image) for the given image using the source pair.
@@ -537,8 +548,8 @@ namespace AnimationImageAnalogy
             /*Iterate through patches finding a best match for each */
             for (int col = 0; col < width; col += patchIterX)
             {
-                if (col > 20)
-                    break;
+                //if (col > 20)
+                //    break;
                 //Make sure we're not out of column range
                 //if (col + patchDimension >= width)
                 //SOMETHING IS PROBABLY WRONG HERE SINCE IT SHOULD WORK WITH JUST PATCHDIMENSION
@@ -546,7 +557,6 @@ namespace AnimationImageAnalogy
                 {
                     break;
                 }
-                //IT'S PLUS ONE HERE TO MAKE A LINE
                 for (int row = 0; row < height; row += patchIterY)
                 {
                     //Make sure we're not out of bounds for y
@@ -555,12 +565,12 @@ namespace AnimationImageAnalogy
                     {
                         break;
                     }
-                    //Find the best random patch, testing out patchNum amount of random patches
+                    //Find the best random patch from A1 , testing out patchNum amount of random patches
                     bestMatch = BestRandomPatch(imageB1, col,row, patchNum);
-                    //Copy the patch, first with horizontal overlap then with vertical overlap
 
+                    //Copy the patch, first with horizontal overlap then with vertical overlap
                     Tuple<int,int> currentBPatch = new Tuple<int, int>(col, row);
-                    //imageB2 = copyPatchDijkstra(imageA2, imageB2, bestMatch, i, j, false);
+                    imageB2 = copyPatchDijkstraNew(imageA2, imageB2, bestMatch, currentBPatch, true);
                     imageB2 = copyPatchDijkstraNew(imageA2, imageB2, bestMatch, currentBPatch, false);
 
                     Console.WriteLine("Current patch index: " + col + ", " + row);   
