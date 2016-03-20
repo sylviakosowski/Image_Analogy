@@ -15,8 +15,10 @@ namespace AnimationImageAnalogy
 
         public Color diff; //The color difference at this node location
 
-        public int distance; //used in dijkstra's
-        public bool visited;
+        public int cost; //The current cost of getting to this node, used in dijkstra's
+        public bool visited; //Whether this node has been visited or not, used in dijkstra's
+        public bool permanent; //Whether this node has a permanent cost, useed in dijkstra's
+        public Node parent; //The node which came before this node in the shortest path
 
         //Adjacency list, stores the neighbor nodes of this pixel along with its edge weight
         public List<Tuple<Node,int>> neighbors; 
@@ -26,8 +28,10 @@ namespace AnimationImageAnalogy
             this.x = x;
             this.y = y;
             this.diff = diff;
-            distance = Int32.MaxValue;
+            cost = Int32.MaxValue;
             visited = false;
+            permanent = false;
+            parent = null;
             neighbors = new List<Tuple<Node,int>>();
         }
 

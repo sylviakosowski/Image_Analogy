@@ -229,7 +229,6 @@ namespace AnimationImageAnalogy
         /* Helper function for findShortestPath, performs Dijkstra's algorithm */
         private void dijkstra(Node current, Node end, bool horizontal)
         {
-            //horizontal = !horizontal;
             Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
             shortestPath.Enqueue(pos);
             if (horizontal)
@@ -239,13 +238,11 @@ namespace AnimationImageAnalogy
             {
                 shortestPathArray[current.y] = current.x;
             }
-            
-            //Console.WriteLine("SHORTEST PATH pos: " + pos);
 
             if (current.x == end.x && current.y == end.y)
             {
                 //Destination node is visited, so return
-                //Console.WriteLine("CORRECT END REACHED!");
+                Console.WriteLine("CORRECT END REACHED!");
                 current.visited = true;
                 return;
             }
@@ -272,23 +269,23 @@ namespace AnimationImageAnalogy
                 
                 if (n.Item1.visited == false && nextLevel > currentLevel)
                 {
-                    //Console.WriteLine("nextLevel: " + nextLevel);
-                    //Console.WriteLine("currentLevel: " + currentLevel);
                     //Calculate tentative distance for this node
-                    int tentativeDistance = current.distance + n.Item2;
+                    int tentativeDistance = current.cost + n.Item2;
 
-                    if (n.Item1.distance > tentativeDistance)
+                    if (n.Item1.cost > tentativeDistance)
                     {
-                        n.Item1.distance = tentativeDistance;
+                        n.Item1.cost = tentativeDistance;
 
-                        //Check if this is now the node with the smallest distance an update accordingly
+                        //Check if this is now the node with the smallest distance and update accordingly
                         if (smallestDistNode == null)
                         {
                             smallestDistNode = n;
                         }
                         else
                         {
-                            if (smallestDistNode.Item1.distance > tentativeDistance)
+                            //Console.WriteLine("smallestDistNode.Item1.distance: " + smallestDistNode.Item1.distance);
+                            //Console.WriteLine("tentativeDistance: " + tentativeDistance);
+                            if (smallestDistNode.Item1.cost > tentativeDistance)
                             {
                                 smallestDistNode = n;
                             }
@@ -303,18 +300,117 @@ namespace AnimationImageAnalogy
             if(smallestDistNode == null){
                 //we should never get here because we're not doing a complete traversal
                 //but just in case
-                //Console.WriteLine("We should never get here because we're not doing a complete traversal");
+                Console.WriteLine("We should never get here because we're not doing a complete traversal");
                 return;
             }
             dijkstra(smallestDistNode.Item1, end, horizontal);
         }
 
+        private void dijkstra2(Node current, Node end, List<Node> tempNodes, bool horizontal)
+        {
+            //Console.WriteLine(tempNodes.Count);
+            if(tempNodes.Count == 0 || graph[current.x, current.y].cost == Int32.MaxValue) {
+                //If there are no temporary nodes or if the cost of current is infinity, stop
+                //Console.WriteLine("END OF DIJKSTRA REACHED");
+                return;
+            }
+            else
+            {
+                //Console.WriteLine("DIJKSTRA ITERATION");
+                //Find the temporary node with the smallest temporary cost
+                Node smallestNode = null;
+                foreach(Node temp in tempNodes)
+                {
+                    if (smallestNode == null)
+                    {
+                        smallestNode = temp;
+                    } else
+                    {
+                        if(graph[temp.x, temp.y].cost < smallestNode.cost)
+                        {
+                            smallestNode = graph[temp.x, temp.y];
+                        }
+                    }
+                }
+                //Label the smallest node as permanent
+                graph[smallestNode.x, smallestNode.y].permanent = true;
+                //Remove the smallest node from teh temp nodes
+                tempNodes.Remove(smallestNode);
+                //Label the smallest node as the current node
+                current = graph[smallestNode.x, smallestNode.y];
+
+                foreach(Tuple<Node, int> neighbor in current.neighbors)
+                {
+                    //For each temporary node which is a neighbor of the current node
+                    //if cost(current) + edgeWeight < cost(neighbor) assign cost(neighbor) to the sum
+                    Node neighborNode = neighbor.Item1;
+                    if(!graph[neighborNode.x, neighborNode.y].permanent)
+                    {
+                        int neighborCost = graph[neighborNode.x, neighborNode.y].cost;
+                        int edgeWeight = neighbor.Item2;
+                        int sum = current.cost + edgeWeight;
+                        if (sum < neighborCost)
+                        {
+                            //Set the cost and the parent for this node
+                            graph[neighborNode.x, neighborNode.y].cost = sum;
+                            graph[neighborNode.x, neighborNode.y].parent = graph[current.x, current.y];
+                        }
+                        if(!graph[neighborNode.x,neighborNode.y].visited)
+                        {
+                            tempNodes.Add(graph[neighborNode.x, neighborNode.y]);
+                            graph[neighborNode.x, neighborNode.y].visited = true;
+                        }
+                    }
+                }
+
+                dijkstra2(current, end, tempNodes, horizontal);
+            }
+        }
+
+        private void collectPath(Node start, Node end, bool horizontal)
+        {
+
+            //Console.WriteLine("START PATH");
+            //Backtrack from the end node and find the shortest path to the start node
+            Node current = end;
+            //int test = 0;
+            while(graph[current.x, current.y].parent != null)
+            {
+                if (horizontal)
+                {
+                    shortestPathArray[current.x] = current.y;
+                }
+                else
+                {
+                    shortestPathArray[current.y] = current.x;
+                }
+
+                current = graph[current.x, current.y].parent;
+                //Console.WriteLine("Current x: " + current.x);
+                //Console.WriteLine("Current y: " + current.y);
+                //test++;
+            }
+            //Console.WriteLine("size of shortestpath: " + test);
+            //Console.WriteLine("END PATH");
+            shortestPathArray.Reverse();
+        }
+
         public void findShortestPath(Node start, Node end, bool horizontal)
         {
-            start.distance = 0;
+            //Console.WriteLine("start: " + start.x + " " + start.y);
+            //Console.WriteLine("end: " + end.x + " " + end.y);
+            //Assign a cost of 0 to the starting node. All other nodes stay with cost of maxint (infinity)
+            start.cost = 0;
             start.visited = true;
+            graph[start.x, start.y].cost = 0;
+            graph[start.x, start.y].visited = true;
+            List<Node> tempNodes = new List<Node>();
+            tempNodes.Add(start);
 
-            dijkstra(start, end, horizontal);
+            //dijkstra(start, end, horizontal);
+            dijkstra2(start, end, tempNodes, horizontal);
+            collectPath(start, end, horizontal);
+
         }
 
     }
