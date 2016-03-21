@@ -33,7 +33,7 @@ namespace AnimationImageAnalogy
          * patchLocB is the top left corner of the patch in B
          */
         private int ComputePatchValue(Color[,] imageA, Color[,] imageB, 
-            Tuple <int,int> patchLocA, int bX, int bY, int patchXSize, int patchYSize)
+            Tuple <int,int> patchLocA, Tuple<int,int> patchLocB, int patchXSize, int patchYSize)
         {
             int patchValue = 0;
             for (int i = 0; i < patchXSize; i++) 
@@ -48,7 +48,8 @@ namespace AnimationImageAnalogy
 
                     //Compute sum of squared differences for each pixel in patch
                     Color a = imageA[patchLocA.Item1+i, patchLocA.Item2+j];
-                    Color b = imageB[bX+i, bY+j];
+                    //Color b = imageB[bX+i, bY+j];
+                    Color b = imageB[patchLocB.Item1+i, patchLocB.Item2+j];
 
                     int ssd = (int)( Math.Pow((a.A - b.A), 2) + Math.Pow((a.R - b.R), 2)
                         + Math.Pow((a.G - b.G), 2) + Math.Pow((a.B - b.B), 2));
@@ -87,7 +88,7 @@ namespace AnimationImageAnalogy
                     if (width - i > patchDimension && height - j > patchDimension)
                     {
                         Tuple<int, int> currentPatchA1 = new Tuple<int, int>(i, j);
-                        currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY,
+                        currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, new Tuple<int,int>(bX, bY),
                             patchDimension, patchDimension);
 
                         if (currentPatchVal < bestPatchVal)
@@ -130,13 +131,151 @@ namespace AnimationImageAnalogy
                 if (width - xRand > patchDimension + 1 && height - yRand > patchDimension + 1)
                 {
                     Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
-                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, bX, bY,
+                    currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, new Tuple<int,int>(bX, bY),
                         patchDimension, patchDimension);
 
                     if (currentPatchVal < bestPatchVal)
                     {
                         bestPatchVal = currentPatchVal;
                         bestPatchA1 = currentPatchA1;
+                    }
+                }
+            }
+
+           
+            return bestPatchA1;
+        }
+
+        private Tuple<int, int> BestRandomPatchNew(Color[,] imageB1, Color[,] imageB2, int bX, int bY, int searchCount)
+        {
+            int width = imageA1.GetLength(0);
+            int height = imageA1.GetLength(1);
+            Tuple<int, int> currentB = new Tuple<int, int>(bX, bY);
+
+            Random r = new Random(Guid.NewGuid().GetHashCode());
+
+            int halfPatchSize = patchDimension / 2;
+
+            //Keeps track of coordinates and values for the best patch we've found so far
+            Tuple<int, int> bestPatchA1 = null;
+            //we are looking for the smallest patchval, so set to max int as default
+            int bestPatchVal = Int32.MaxValue;
+            //Keeps track of the current patch value in the patch we're iterating on
+            int currentPatchVal = 0;
+
+            //Get the patch to the left of the current patch in imageB2
+            Tuple<int, int> patchB2Left = null;
+            if(bX - patchIter >= 0)
+            {
+                patchB2Left = new Tuple<int, int>(bX - patchIter, bY);
+            }
+            //Get the patch to the top of the current patch in imageB2
+            Tuple<int, int> patchB2Top = null;
+            if(bY - patchIter >= 0)
+            {
+                patchB2Top = new Tuple<int, int>(bX, bY - patchIter);
+            }
+
+            Tuple<int, int> patchA2Left;
+            Tuple<int, int> patchA2Top;
+            for (int i = 0; i < searchCount; i++)
+            {
+                int xRand = r.Next(patchIter, width - patchDimension);
+                int yRand = r.Next(patchIter, height - patchDimension);
+
+                //if (width - xRand > patchDimension + 1 && height - yRand > patchDimension + 1)
+
+                //Get the patch to the left of the current patch in imageA2
+                patchA2Left = new Tuple<int, int>(xRand - patchIter, yRand);
+                //Get teh patch to the top of the current patch in imageA2
+                patchA2Top = new Tuple<int, int>(xRand, yRand - patchIter);
+
+                Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
+
+                //Calculated the weighted SSD
+                int a1b1_val = ComputePatchValue(imageA1, imageB1, currentPatchA1, currentB,
+                    patchDimension, patchDimension);
+                int a2b2_val_left = 0;
+                if (patchB2Left != null)
+                {
+                    a2b2_val_left = ComputePatchValue(imageA2, imageB2, patchA2Left, patchB2Left,
+                    patchDimension, patchDimension);
+                }
+                int a2b2_val_top = 0;
+                if(patchB2Top != null)
+                {
+                    a2b2_val_top = ComputePatchValue(imageA2, imageB2, patchA2Top, patchB2Top,
+                    patchDimension, patchDimension);
+                }
+
+                currentPatchVal = 5 * a1b1_val + a2b2_val_left + a2b2_val_top;
+
+                //Calculated the weighted SSD
+                //d = 5 * dist2(a, b) + dist2(apXLeft, bpXLeftT) + dist2(apYBot, bpYBotT);
+
+                if (currentPatchVal < bestPatchVal)
+                {
+                    bestPatchVal = currentPatchVal;
+                    bestPatchA1 = currentPatchA1;
+                }
+            }
+
+            Console.WriteLine("Best Patch: " + bestPatchA1.Item1 + " " + bestPatchA1.Item2);
+            return bestPatchA1;
+        }
+
+        private Tuple<int,int> BestRandomCoherentPatch(Color[,] imageB1, int bX, int bY, int n, int coherenceRadius, int coherenceChance,
+            int prevAX, int prevAY)
+        {
+            int width = imageA1.GetLength(0);
+            int height = imageA1.GetLength(1);
+
+            //Keeps track of coordinates and values for the best patch we've found so far
+            Tuple<int, int> bestPatchA1 = null;
+            //we are looking for the smallest patchval, so set to max int as default
+            int bestPatchVal = Int32.MaxValue;
+
+            //Keeps track of the current patch value in the patch we're iterating on
+            int currentPatchVal = 0;
+
+            Random r = new Random();
+
+            //int percent = r.Next(1, 100);
+            //Test n randomly selected patches for the best match
+            for (int i = 0; i < n; i++)
+            {
+                //Select the top left coordinates of the random patch
+                int xRand;
+                int yRand;
+                int percent = r.Next(1, 100);
+
+                if ( percent < coherenceChance)
+                {
+                    xRand = r.Next(prevAX - coherenceRadius, prevAX + coherenceRadius);
+                    yRand = r.Next(prevAY - coherenceRadius, prevAY + coherenceRadius);
+                } else
+                {
+                    xRand = r.Next(0, width);
+                    yRand = r.Next(0, height);
+                }
+
+                //int xRand = r.Next(0, width);
+                //int yRand = r.Next(0, height);
+
+                //Make sure that it is a full patch
+                if(xRand > 0 && yRand > 0)
+                {
+                    if (width - xRand > patchDimension + 1 && height - yRand > patchDimension + 1)
+                    {
+                        Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
+                        currentPatchVal = ComputePatchValue(imageA1, imageB1, currentPatchA1, new Tuple<int,int>(bX, bY),
+                            patchDimension, patchDimension);
+
+                        if (currentPatchVal < bestPatchVal)
+                        {
+                            bestPatchVal = currentPatchVal;
+                            bestPatchA1 = currentPatchA1;
+                        }
                     }
                 }
             }
@@ -713,14 +852,17 @@ namespace AnimationImageAnalogy
                     } else
                     {
                         //Every other case, inside the image
-                        if(x-beginX < patchOverlap && y-beginY < patchOverlap)
+                        if (x - beginX < patchOverlap && y - beginY < patchOverlap)
                         {
                             //Top left corner where we need to blend
                             //imageB2[bX, bY] = Color.Red;
                             Color horizontalColor;
                             Color verticalColor;
+
+                            bool leftActive = false;
+                            bool topActive = false;
                             //If our path is vertical (we are tiling horizontally)
-                            if (x - beginX > shortestPathArrayV[y - beginY] || patchB.Item1 == 0)
+                            if (x - beginX > shortestPathArrayV[y - beginY])
                             {
                                 //We're to the right of the path, put in color from imageA2
                                 //Also if we're at the left of the image we want all of B2
@@ -730,12 +872,13 @@ namespace AnimationImageAnalogy
                             else
                             {
                                 //We're to the left of the path, keep imageB2 as it is
-                                //imageB2[bX, bY] = Color.Aqua;
+                                //verticalColor = Color.Aqua;
+                                leftActive = true;
                                 verticalColor = imageB2[bX, bY];
                             }
 
                             //If our path is horizontal (we are tiling vertically)
-                            if (y - beginY > shortestPathArrayH[x - beginX] || patchB.Item2 == 0)
+                            if (y - beginY > shortestPathArrayH[x - beginX])
                             {
                                 //If we're below the path, put in color from imageA2
                                 //Also if we're at the top of the image we want all of A2
@@ -745,11 +888,27 @@ namespace AnimationImageAnalogy
                             else
                             {
                                 //If we're above or on the path, keep imageB2 as it is
-                                //imageB2[bX, bY] = Color.Aqua;
+                                //imageB2[bX, bY] = Color.Green;
+                                topActive = true;
+                                //horizontalColor = Color.Yellow;
                                 horizontalColor = imageB2[bX, bY];
                             }
 
-                            imageB2[bX, bY] = blendAverage(horizontalColor, verticalColor);
+                            // imageB2[bX, bY] = Color.Red;
+                            if (leftActive && topActive)
+                            {
+                                imageB2[bX, bY] = blendAverage(horizontalColor, verticalColor);
+                            } else if (leftActive)
+                            {
+                                imageB2[bX, bY] = verticalColor;
+                            } else if (topActive)
+                            {
+                                imageB2[bX, bY] = horizontalColor;
+                            } else
+                            {
+                                imageB2[bX, bY] = blendAverage(horizontalColor, verticalColor);
+                            }
+                            
 
                         } else if (x-beginX < patchOverlap)
                         {
@@ -786,13 +945,13 @@ namespace AnimationImageAnalogy
                             else
                             {
                                 //If we're above or on the path, keep imageB2 as it is
-                                //imageB2[bX, bY] = Color.Aqua;
+                                //imageB2[bX, bY] = Color.Yellow;
                                 //newColor = imageB2[bX, bY];
                             }
                         } else
                         {
                             //Bottom right corner where we need imageA2 values
-                            //imageB2[bX, bY] = Color.Aqua;
+                            //imageB2[bX, bY] = Color.Green;
                             imageB2[bX, bY] = imageA2[x, y];
                         }
                     }
@@ -832,16 +991,19 @@ namespace AnimationImageAnalogy
             int height = imageB1.GetLength(1);
             Color[,] imageB2 = new Color[width, height];
             Tuple<int, int> bestMatch = null;
+            Tuple<int, int> prevBestMatch = null;
 
             //TESTING TO MAKE SURE DIJKSTRA ACTUALLY WORKS
             int patchIterX = patchIter;
             int patchIterY = patchIter;
 
+            
+
             /*Iterate through patches finding a best match for each */
             for (int col = 0; col < width; col += patchIterX)
             {
-                //if (col > 100)
-                //    break;
+                if (col > 100)
+                    break;
                 //Make sure we're not out of column range
                 //if (col + patchDimension >= width)
                 //SOMETHING IS PROBABLY WRONG HERE SINCE IT SHOULD WORK WITH JUST PATCHDIMENSION
@@ -858,7 +1020,30 @@ namespace AnimationImageAnalogy
                         break;
                     }
                     //Find the best random patch from A1 , testing out patchNum amount of random patches
-                    bestMatch = BestRandomPatch(imageB1, col,row, patchNum);
+                    //bestMatch = BestRandomPatch(imageB1, col,row, patchNum);
+
+                    /*
+                    if(prevBestMatch == null)
+                    {
+                        bestMatch = BestRandomPatch(imageB1, col, row, patchNum);
+                        prevBestMatch = bestMatch;
+                    } else
+                    {
+                        //if(col%(patchIter*4) == 0 && row%(patchIter*4) == 0)
+                        if(false)
+                        {
+                            bestMatch = BestRandomPatch(imageB1, col, row, patchNum);
+                            prevBestMatch = bestMatch;
+                            //Console.WriteLine("BLAH!");
+                        } else
+                        {
+                            bestMatch = BestRandomCoherentPatch(imageB1, col, row, patchNum, 10, 60, prevBestMatch.Item1, prevBestMatch.Item2);
+                            prevBestMatch = bestMatch;
+                            //Console.WriteLine("MEH!");
+                        }
+                    }*/
+                    //bestMatch = BestRandomPatch(imageB1, col, row, patchNum);
+                    bestMatch = BestRandomPatchNew(imageB1, imageB2, col, row, patchNum);
 
                     //Copy the patch, first with horizontal overlap then with vertical overlap
                     Tuple<int,int> currentBPatch = new Tuple<int, int>(col, row);

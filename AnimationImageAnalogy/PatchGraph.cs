@@ -323,7 +323,7 @@ namespace AnimationImageAnalogy
                 {
                     if (smallestNode == null)
                     {
-                        smallestNode = temp;
+                        smallestNode = graph[temp.x, temp.y];
                     } else
                     {
                         if(graph[temp.x, temp.y].cost < smallestNode.cost)
@@ -334,7 +334,7 @@ namespace AnimationImageAnalogy
                 }
                 //Label the smallest node as permanent
                 graph[smallestNode.x, smallestNode.y].permanent = true;
-                //Remove the smallest node from teh temp nodes
+                //Remove the smallest node from the temp nodes
                 tempNodes.Remove(smallestNode);
                 //Label the smallest node as the current node
                 current = graph[smallestNode.x, smallestNode.y];
@@ -373,8 +373,7 @@ namespace AnimationImageAnalogy
             //Console.WriteLine("START PATH");
             //Backtrack from the end node and find the shortest path to the start node
             Node current = end;
-            //int test = 0;
-            while(graph[current.x, current.y].parent != null)
+            while (current != null)
             {
                 if (horizontal)
                 {
@@ -386,12 +385,7 @@ namespace AnimationImageAnalogy
                 }
 
                 current = graph[current.x, current.y].parent;
-                //Console.WriteLine("Current x: " + current.x);
-                //Console.WriteLine("Current y: " + current.y);
-                //test++;
             }
-            //Console.WriteLine("size of shortestpath: " + test);
-            //Console.WriteLine("END PATH");
             shortestPathArray.Reverse();
         }
 
@@ -409,7 +403,12 @@ namespace AnimationImageAnalogy
 
             //dijkstra(start, end, horizontal);
             dijkstra2(start, end, tempNodes, horizontal);
+            //Console.WriteLine("end NOW: " + end.x + " " + end.y);
             collectPath(start, end, horizontal);
+
+            //Console.WriteLine("Array first item:" + shortestPathArray[0]);
+            //Console.WriteLine("Array last item:" + shortestPathArray[19]);
+
 
         }
 
