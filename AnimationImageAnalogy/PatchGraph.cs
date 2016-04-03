@@ -226,87 +226,8 @@ namespace AnimationImageAnalogy
 
         }
 
-        /* Helper function for findShortestPath, performs Dijkstra's algorithm */
-        private void dijkstra(Node current, Node end, bool horizontal)
-        {
-            Tuple<int, int> pos = new Tuple<int, int>(current.x, current.y);
-            shortestPath.Enqueue(pos);
-            if (horizontal)
-            {
-                shortestPathArray[current.x] = current.y;
-            } else
-            {
-                shortestPathArray[current.y] = current.x;
-            }
-
-            if (current.x == end.x && current.y == end.y)
-            {
-                //Destination node is visited, so return
-                Console.WriteLine("CORRECT END REACHED!");
-                current.visited = true;
-                return;
-            }
-
-            Tuple<Node, int> smallestDistNode = null;
-
-            foreach (Tuple<Node, int> n in current.neighbors)
-            {
-                //Only do the stuff if the node is unvisited and on the next level of pixels (dont backtrack)
-                int nextLevel;
-                int currentLevel;
-                if(horizontal)
-                {
-                    //Horizontal dijkstra
-                    nextLevel = n.Item1.x;
-                    currentLevel = current.x;
-                } else
-                {
-                    //Vertical dijkstra
-                    nextLevel = n.Item1.y;
-                    currentLevel = current.y;
-                }
-
-                
-                if (n.Item1.visited == false && nextLevel > currentLevel)
-                {
-                    //Calculate tentative distance for this node
-                    int tentativeDistance = current.cost + n.Item2;
-
-                    if (n.Item1.cost > tentativeDistance)
-                    {
-                        n.Item1.cost = tentativeDistance;
-
-                        //Check if this is now the node with the smallest distance and update accordingly
-                        if (smallestDistNode == null)
-                        {
-                            smallestDistNode = n;
-                        }
-                        else
-                        {
-                            //Console.WriteLine("smallestDistNode.Item1.distance: " + smallestDistNode.Item1.distance);
-                            //Console.WriteLine("tentativeDistance: " + tentativeDistance);
-                            if (smallestDistNode.Item1.cost > tentativeDistance)
-                            {
-                                smallestDistNode = n;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //we're done calculating tentative distances for all neighbors of this node, so mark as visited
-            current.visited = true;
-
-            if(smallestDistNode == null){
-                //we should never get here because we're not doing a complete traversal
-                //but just in case
-                Console.WriteLine("We should never get here because we're not doing a complete traversal");
-                return;
-            }
-            dijkstra(smallestDistNode.Item1, end, horizontal);
-        }
-
-        private void dijkstra2(Node current, Node end, List<Node> tempNodes, bool horizontal)
+        /* Uses dijkstra's algorithm to find the shortest path in a graph of Nodes. */
+        private void dijkstra(Node current, Node end, List<Node> tempNodes, bool horizontal)
         {
             //Console.WriteLine(tempNodes.Count);
             if(tempNodes.Count == 0 || graph[current.x, current.y].cost == Int32.MaxValue) {
@@ -363,13 +284,13 @@ namespace AnimationImageAnalogy
                     }
                 }
 
-                dijkstra2(current, end, tempNodes, horizontal);
+                dijkstra(current, end, tempNodes, horizontal);
             }
         }
 
+        /* Backtrack from the last Node in the shortest path and collect all the Nodes in the shortest path. */
         private void collectPath(Node start, Node end, bool horizontal)
         {
-
             //Console.WriteLine("START PATH");
             //Backtrack from the end node and find the shortest path to the start node
             Node current = end;
@@ -389,6 +310,9 @@ namespace AnimationImageAnalogy
             shortestPathArray.Reverse();
         }
 
+        /* Find the shortest path from Node start to Node end. 
+         * horizontal determines if the path is horizontal or vertical. 
+         */
         public void findShortestPath(Node start, Node end, bool horizontal)
         {
             //Console.WriteLine("start: " + start.x + " " + start.y);
@@ -401,15 +325,12 @@ namespace AnimationImageAnalogy
             List<Node> tempNodes = new List<Node>();
             tempNodes.Add(start);
 
-            //dijkstra(start, end, horizontal);
-            dijkstra2(start, end, tempNodes, horizontal);
+            dijkstra(start, end, tempNodes, horizontal);
             //Console.WriteLine("end NOW: " + end.x + " " + end.y);
             collectPath(start, end, horizontal);
 
             //Console.WriteLine("Array first item:" + shortestPathArray[0]);
             //Console.WriteLine("Array last item:" + shortestPathArray[19]);
-
-
         }
 
     }
