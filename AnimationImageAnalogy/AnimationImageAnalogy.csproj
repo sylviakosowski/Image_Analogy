@@ -66,6 +66,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CreateFrames.cs" />
     <Compile Include="ImageAnalogy.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="PainterlyAnimationTool.cs">

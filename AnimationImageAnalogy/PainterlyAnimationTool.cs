@@ -12,6 +12,7 @@ namespace AnimationImageAnalogy
 {
     public partial class PainterlyAnimationTool : Form
     {
+
         public PainterlyAnimationTool()
         {
             InitializeComponent();
@@ -76,6 +77,14 @@ namespace AnimationImageAnalogy
         private void groupBox2_Enter(object sender, EventArgs e)
         {
 
+        }
+
+        /* Create the frames using the provided paths and parameters. */
+        private void createFramesButton_Click(object sender, EventArgs e)
+        {
+            //TODO: ADD ERROR CHECKING FOR IF THE USER DIDNT CORRECTLY PUT IN INPUT
+            CreateFrames cf = new CreateFrames(this, pathA1Text.Text, pathA2Text.Text, pathB1Text.Text, pathB2Text.Text, 
+                Int32.Parse(sizeText.Text), Int32.Parse(iterText.Text), Int32.Parse(randText.Text));
         }
     }
 }

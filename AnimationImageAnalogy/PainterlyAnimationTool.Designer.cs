@@ -47,11 +47,11 @@
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.optionsGroup = new System.Windows.Forms.GroupBox();
             this.patchSizeLabel = new System.Windows.Forms.Label();
-            this.sizeTextBox = new System.Windows.Forms.TextBox();
+            this.sizeText = new System.Windows.Forms.TextBox();
             this.patchIterLabel = new System.Windows.Forms.Label();
-            this.iterTextBox = new System.Windows.Forms.TextBox();
+            this.iterText = new System.Windows.Forms.TextBox();
             this.randLabel = new System.Windows.Forms.Label();
-            this.randTextBox = new System.Windows.Forms.TextBox();
+            this.randText = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -203,13 +203,14 @@
             // createFramesButton
             // 
             this.createFramesButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
-            this.createFramesButton.Location = new System.Drawing.Point(17, 1002);
+            this.createFramesButton.Location = new System.Drawing.Point(17, 1136);
             this.createFramesButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.createFramesButton.Name = "createFramesButton";
             this.createFramesButton.Size = new System.Drawing.Size(897, 104);
             this.createFramesButton.TabIndex = 6;
             this.createFramesButton.Text = "Create Frames";
             this.createFramesButton.UseVisualStyleBackColor = true;
+            this.createFramesButton.Click += new System.EventHandler(this.createFramesButton_Click);
             // 
             // groupBox5
             // 
@@ -220,14 +221,14 @@
             this.groupBox5.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.groupBox5.Size = new System.Drawing.Size(897, 390);
+            this.groupBox5.Size = new System.Drawing.Size(897, 536);
             this.groupBox5.TabIndex = 7;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Output";
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(14, 335);
+            this.progressBar.Location = new System.Drawing.Point(14, 485);
             this.progressBar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(866, 36);
@@ -239,7 +240,7 @@
             this.outputBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.outputBox.Multiline = true;
             this.outputBox.Name = "outputBox";
-            this.outputBox.Size = new System.Drawing.Size(868, 282);
+            this.outputBox.Size = new System.Drawing.Size(868, 425);
             this.outputBox.TabIndex = 0;
             // 
             // folderBrowserDialog1
@@ -248,11 +249,11 @@
             // 
             // optionsGroup
             // 
-            this.optionsGroup.Controls.Add(this.randTextBox);
+            this.optionsGroup.Controls.Add(this.randText);
             this.optionsGroup.Controls.Add(this.randLabel);
-            this.optionsGroup.Controls.Add(this.iterTextBox);
+            this.optionsGroup.Controls.Add(this.iterText);
             this.optionsGroup.Controls.Add(this.patchIterLabel);
-            this.optionsGroup.Controls.Add(this.sizeTextBox);
+            this.optionsGroup.Controls.Add(this.sizeText);
             this.optionsGroup.Controls.Add(this.patchSizeLabel);
             this.optionsGroup.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
             this.optionsGroup.Location = new System.Drawing.Point(17, 472);
@@ -274,13 +275,13 @@
             this.patchSizeLabel.TabIndex = 0;
             this.patchSizeLabel.Text = "Patch Size:";
             // 
-            // sizeTextBox
+            // sizeText
             // 
-            this.sizeTextBox.Location = new System.Drawing.Point(166, 51);
-            this.sizeTextBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.sizeTextBox.Name = "sizeTextBox";
-            this.sizeTextBox.Size = new System.Drawing.Size(124, 68);
-            this.sizeTextBox.TabIndex = 2;
+            this.sizeText.Location = new System.Drawing.Point(166, 51);
+            this.sizeText.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.sizeText.Name = "sizeText";
+            this.sizeText.Size = new System.Drawing.Size(124, 68);
+            this.sizeText.TabIndex = 2;
             // 
             // patchIterLabel
             // 
@@ -292,13 +293,13 @@
             this.patchIterLabel.TabIndex = 3;
             this.patchIterLabel.Text = "Patch Iter:";
             // 
-            // iterTextBox
+            // iterText
             // 
-            this.iterTextBox.Location = new System.Drawing.Point(438, 51);
-            this.iterTextBox.Margin = new System.Windows.Forms.Padding(2);
-            this.iterTextBox.Name = "iterTextBox";
-            this.iterTextBox.Size = new System.Drawing.Size(124, 68);
-            this.iterTextBox.TabIndex = 4;
+            this.iterText.Location = new System.Drawing.Point(438, 51);
+            this.iterText.Margin = new System.Windows.Forms.Padding(2);
+            this.iterText.Name = "iterText";
+            this.iterText.Size = new System.Drawing.Size(124, 68);
+            this.iterText.TabIndex = 4;
             // 
             // randLabel
             // 
@@ -310,13 +311,13 @@
             this.randLabel.TabIndex = 5;
             this.randLabel.Text = "Rand Amount:";
             // 
-            // randTextBox
+            // randText
             // 
-            this.randTextBox.Location = new System.Drawing.Point(758, 51);
-            this.randTextBox.Margin = new System.Windows.Forms.Padding(2);
-            this.randTextBox.Name = "randTextBox";
-            this.randTextBox.Size = new System.Drawing.Size(124, 68);
-            this.randTextBox.TabIndex = 6;
+            this.randText.Location = new System.Drawing.Point(758, 51);
+            this.randText.Margin = new System.Windows.Forms.Padding(2);
+            this.randText.Name = "randText";
+            this.randText.Size = new System.Drawing.Size(124, 68);
+            this.randText.TabIndex = 6;
             // 
             // PainterlyAnimationTool
             // 
@@ -374,10 +375,10 @@
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.GroupBox optionsGroup;
         private System.Windows.Forms.Label patchSizeLabel;
-        private System.Windows.Forms.TextBox sizeTextBox;
+        private System.Windows.Forms.TextBox sizeText;
         private System.Windows.Forms.Label patchIterLabel;
-        private System.Windows.Forms.TextBox iterTextBox;
-        private System.Windows.Forms.TextBox randTextBox;
+        private System.Windows.Forms.TextBox iterText;
+        private System.Windows.Forms.TextBox randText;
         private System.Windows.Forms.Label randLabel;
     }
 }
