@@ -53,5 +53,38 @@ namespace AnimationImageAnalogy
 
         }
 
+        /* Average two arrays. Precondition: they have the same dimensions. */
+        public static Color[,] averageArrays(Color[,] image1, Color[,] image2, float weight)
+        {
+            int height = image1.GetLength(0);
+            int width = image1.GetLength(1);
+            Color[,] average = new Color[height, width];
+            for(int i = 0; i < height; i++)
+            {
+                for(int j = 0; j < width; j++)
+                {
+                    average[i, j] = blendAverage(image1[i, j], image2[i, j], weight);
+                }
+            }
+
+            return average;
+        }
+
+        private static Color blendWeightedAverage(Color a, Color b, float weight)
+        {
+            //Color current = imageB2[bX, bY];
+            //Color aColor = imageA2[aX, aY];
+            ///int aVal = (a.A + b.A) / 2;
+            //int rVal = (a.R + b.R) / 2;
+            //int gVal = (a.G + b.G) / 2;
+            //int bVal = (a.B + b.B) / 2;
+            int aVal = (int)((a.A * weight) + (b.A * (1 - weight)));
+            int rVal = (int)((a.R * weight) + (b.R * (1 - weight)));
+            int gVal = (int)((a.G * weight) + (b.G * (1 - weight)));
+            int bVal = (int)((a.B * weight) + (b.B * (1 - weight)));
+            Color average = Color.FromArgb(aVal, rVal, gVal, bVal);
+            return average;
+        }
+
     }
 }
