@@ -38,6 +38,7 @@ namespace AnimationImageAnalogy
             this.patchSize = patchSize;
             this.patchIter = patchIter;
             this.randAmount = randAmount;
+            iterFiles();
         }
 
         /* Iterate through each frame, generating the animation frame and copying over
@@ -92,13 +93,17 @@ namespace AnimationImageAnalogy
                     copyFrame(framesA2[endKeyIndex]);
                 }
 
+                ui.outputBox.Text += "CREATING IN-BETWEEN FRAME: " + Path.GetFileName(frame) + Environment.NewLine;
+
+                //FOR TESTING PURPOSES WE'RE JUST DOING ONE TO SEE IF WE GET THE SAME RESULTS USING THIS NEW SYSTEM
                 Color[,] imageFromStart = createImage(startAnalogy, frame);
-                Color[,] imageFromEnd = createImage(endAnalogy, frame);
+                //Color[,] imageFromEnd = createImage(endAnalogy, frame);
 
                 //FOR NOW, BLEND 50-50 BETWEEN START AND END. IN THE FUTURE, WE'LL WEIGHT BASED
                 //ON HOW CLSE THE IN BETWEEN IS TO THE START AND END KEYFRAMES
-                Color[,] average = Utilities.averageArrays(imageFromStart, imageFromEnd, 0.50f);
-                writeImage(average, frame);
+                //Color[,] average = Utilities.averageArrays(imageFromStart, imageFromEnd, 0.50f);
+                //writeImage(average, frame);
+                writeImage(imageFromStart, frame);
             }
 
         }
@@ -116,6 +121,7 @@ namespace AnimationImageAnalogy
         private void copyFrame(string frameA2)
         {
             string frameName = Path.GetFileName(frameA2);
+            ui.outputBox.Text += "COPYING KEYFRAME: " + frameName + Environment.NewLine;
             File.Copy(frameA2, Path.Combine(pathB2, frameName));
         }
 
@@ -125,7 +131,7 @@ namespace AnimationImageAnalogy
             //Image source pair data
             Color[,] imageA1 = Utilities.createImageArrayFromFile(frameA1);
             Color[,] imageA2 = Utilities.createImageArrayFromFile(frameA2);
-            return new ImageAnalogy(imageA1, imageA2, patchSize, patchIter);
+            return new ImageAnalogy(imageA1, imageA2, patchSize, patchIter, ui);
         }
 
         /* Creates an animation frame using the provided analogy, image, and parameters */
@@ -139,6 +145,8 @@ namespace AnimationImageAnalogy
         /* Copy the final B2 image to the B2 output path */
         private void writeImage(Color[,] imageB2, string frameName)
         {
+            ui.outputBox.Text += "SAVING IN-BETWEEN FRAME: " + Path.GetFileName(frameName) + Environment.NewLine;
+
             string newFilePath = Path.Combine(pathB2, Path.GetFileName(frameName));
             Utilities.createFileFromImageArray(imageB2, newFilePath);
         }

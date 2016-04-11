@@ -19,13 +19,16 @@ namespace AnimationImageAnalogy
         /* Determines number of pixels we iterate by each time */
         private int patchIter;
 
+        private PainterlyAnimationTool ui;
+
         /* Constructor */
-        public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension, int patchIter) 
+        public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension, int patchIter, PainterlyAnimationTool ui) 
         {
             this.imageA1 = imageA1;
             this.imageA2 = imageA2;
             this.patchDimension = patchDimension;
             this.patchIter = patchIter;
+            this.ui = ui;
         }
 
         /* Compute patch value
@@ -409,7 +412,8 @@ namespace AnimationImageAnalogy
                     Tuple<int,int> currentBPatch = new Tuple<int, int>(col, row);
                     imageB2 = copyPatchDijkstraSimultaneous(imageA2, imageB2, bestMatch, currentBPatch, true);
 
-                    Console.WriteLine("Current patch index: " + col + ", " + row);   
+                    // Console.WriteLine("Current patch index: " + col + ", " + row);
+                    ui.outputBox.Text += "Current patch index: " + col + ", " + row + Environment.NewLine;
                 }
             }
             return imageB2;

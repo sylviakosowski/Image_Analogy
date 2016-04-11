@@ -63,7 +63,7 @@ namespace AnimationImageAnalogy
             {
                 for(int j = 0; j < width; j++)
                 {
-                    average[i, j] = blendAverage(image1[i, j], image2[i, j], weight);
+                    average[i, j] = blendWeightedAverage(image1[i, j], image2[i, j], weight);
                 }
             }
 
