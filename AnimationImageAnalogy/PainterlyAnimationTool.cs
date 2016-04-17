@@ -16,11 +16,17 @@ namespace AnimationImageAnalogy
         public PainterlyAnimationTool()
         {
             InitializeComponent();
+            
         }
 
         private void PainterlyAnimationTool_Load(object sender, EventArgs e)
         {
+            Logger.LogAdded += new EventHandler(Logger_LogAdded);
+        }
 
+        private void PainterlyAnimationTool_Closed(object sender, EventArgs e)
+        {
+            Logger.LogAdded -= new EventHandler(Logger_LogAdded);
         }
 
         private void groupBox4_Enter(object sender, EventArgs e)
@@ -86,5 +92,16 @@ namespace AnimationImageAnalogy
             CreateFrames cf = new CreateFrames(this, pathA1Text.Text, pathA2Text.Text, pathB1Text.Text, pathB2Text.Text, 
                 Int32.Parse(sizeText.Text), Int32.Parse(iterText.Text), Int32.Parse(randText.Text));
         }
+
+        /* Log stuff in the output box. */
+        void Logger_LogAdded(object sender, EventArgs e)
+        {
+            //MethodInvoker action = delegate{ outputBox.Text += Environment.NewLine + Logger.GetLastLog(); };
+            //outputBox.Invoke(action);
+
+            outputBox.Text = Logger.GetLastLog() + Environment.NewLine + outputBox.Text;
+            Application.DoEvents();
+        }
+
     }
 }

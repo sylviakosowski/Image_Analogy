@@ -38,6 +38,8 @@ namespace AnimationImageAnalogy
             this.patchSize = patchSize;
             this.patchIter = patchIter;
             this.randAmount = randAmount;
+            Logger.Log("wtf lol");
+            Logger.Log("heello?");
             iterFiles();
         }
 
@@ -46,6 +48,7 @@ namespace AnimationImageAnalogy
          */
         private void iterFiles()
         {
+            
             //Get all the image files from the provided directories
             framesA1 = Directory.GetFiles(pathA1);
             framesA2 = Directory.GetFiles(pathA2);
@@ -65,6 +68,8 @@ namespace AnimationImageAnalogy
             //Copy the current keyframes to destination directory
             copyFrame(framesA2[startKeyIndex]);
             copyFrame(framesA2[endKeyIndex]);
+
+            Logger.Log("wtf is happening");
 
             //Iterate through the in-between frames, creating a new frame for each
             foreach(string frame in framesB1)
@@ -93,7 +98,8 @@ namespace AnimationImageAnalogy
                     copyFrame(framesA2[endKeyIndex]);
                 }
 
-                ui.outputBox.Text += "CREATING IN-BETWEEN FRAME: " + Path.GetFileName(frame) + Environment.NewLine;
+                Logger.Log("LOL TEST");
+                Logger.Log("CREATING IN-BETWEEN FRAME: " + Path.GetFileName(frame));
 
                 //FOR TESTING PURPOSES WE'RE JUST DOING ONE TO SEE IF WE GET THE SAME RESULTS USING THIS NEW SYSTEM
                 Color[,] imageFromStart = createImage(startAnalogy, frame);
@@ -113,7 +119,9 @@ namespace AnimationImageAnalogy
         {
             string fileName = Path.GetFileName(name);
             var nameSplit = fileName.Split('_');
-            string numbers = nameSplit[1];
+            string numbersExt = nameSplit[1];
+            var extSplit = numbersExt.Split('.');
+            string numbers = extSplit[0];
             return Int32.Parse(numbers);
         }
 
@@ -121,7 +129,7 @@ namespace AnimationImageAnalogy
         private void copyFrame(string frameA2)
         {
             string frameName = Path.GetFileName(frameA2);
-            ui.outputBox.Text += "COPYING KEYFRAME: " + frameName + Environment.NewLine;
+            Logger.Log("COPYING KEYFRAME: " + frameName);
             File.Copy(frameA2, Path.Combine(pathB2, frameName));
         }
 
@@ -145,8 +153,7 @@ namespace AnimationImageAnalogy
         /* Copy the final B2 image to the B2 output path */
         private void writeImage(Color[,] imageB2, string frameName)
         {
-            ui.outputBox.Text += "SAVING IN-BETWEEN FRAME: " + Path.GetFileName(frameName) + Environment.NewLine;
-
+            Logger.Log("SAVING IN-BETWEEN FRAME: " + Path.GetFileName(frameName));
             string newFilePath = Path.Combine(pathB2, Path.GetFileName(frameName));
             Utilities.createFileFromImageArray(imageB2, newFilePath);
         }

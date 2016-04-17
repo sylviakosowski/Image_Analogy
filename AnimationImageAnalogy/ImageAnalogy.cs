@@ -387,8 +387,8 @@ namespace AnimationImageAnalogy
             /*Iterate through patches finding a best match for each */
             for (int col = 0; col < width; col += patchIterX)
             {
-                //if (col > 100)
-                //    break;
+                if (col > 20)
+                    break;
                 //Make sure we're not out of column range
                 //if (col + patchDimension >= width)
                 //SOMETHING IS PROBABLY WRONG HERE SINCE IT SHOULD WORK WITH JUST PATCHDIMENSION
@@ -413,7 +413,7 @@ namespace AnimationImageAnalogy
                     imageB2 = copyPatchDijkstraSimultaneous(imageA2, imageB2, bestMatch, currentBPatch, true);
 
                     // Console.WriteLine("Current patch index: " + col + ", " + row);
-                    ui.outputBox.Text += "Current patch index: " + col + ", " + row + Environment.NewLine;
+                    Logger.Log("Current patch index: " + col + ", " + row);
                 }
             }
             return imageB2;
