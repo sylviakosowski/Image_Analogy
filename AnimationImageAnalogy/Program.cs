@@ -21,10 +21,11 @@ namespace AnimationImageAnalogy
                 string pathA1 = "C:/Users/sylvi_000/Documents/College/BXA_Capstone/Images/Character/ImagesA1";
                 string pathA2 = "C:/Users/sylvi_000/Documents/College/BXA_Capstone/Images/Character/ImagesA2";
                 string pathB1 = "C:/Users/sylvi_000/Documents/College/BXA_Capstone/Images/Character/ImagesB1";
-                string pathB2 = "C:/Users/sylvi_000/Documents/College/BXA_Capstone/Images/Character/ImagesB2";
+                string pathB2 = "C:/Users/sylvi_000/Documents/College/BXA_Capstone/Images/Character/ImagesB2/small_batch_test_coherence";
                 int patchSize = 10;
                 int patchIter = 6;
                 int patchRand = 2000;
+
 
                 new CreateFrames(pathA1, pathA2, pathB1, pathB2, patchSize, patchIter, patchRand);
             }

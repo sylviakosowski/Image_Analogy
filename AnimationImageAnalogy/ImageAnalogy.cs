@@ -13,11 +13,24 @@ namespace AnimationImageAnalogy
         private Color[,] imageA1;
         private Color[,] imageA2;
 
+        /* The patch matches we calculated on the previous frame, if they exist. */
+        private Tuple<int, int>[,] currentPrevMatches;
+
         /* The pixel dimension of the patches we are iterating by */
         private int patchDimension;
 
         /* Determines number of pixels we iterate by each time */
         private int patchIter;
+
+        //Determines how we calculate the weight of a patch
+        private int PATCH_WEIGHT = 5;
+
+        //Determines the radius we will look in for coherence matching
+        //i.e. x patches in every direction, for a total of (2x)^2
+        private int COHERENCE_RADIUS = 10;
+
+        //Determines the amount of randomness we allow when finding the best match with coherence
+        private float RANDOM_PERCENT = 0.25f;
 
         /* Constructor */
         public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension, int patchIter) 
@@ -63,7 +76,7 @@ namespace AnimationImageAnalogy
         }
 
         /* Finds the best random patch from imageA2 which matches the current patch in B1. Finding the patch is weighted
-         * by the existing patches in B2.
+         * by the existing patches in B2 as well as the previous patches we found on the previous frame, if it exists.
          */
         private Tuple<int, int> BestRandomPatchNew(Color[,] imageB1, Color[,] imageB2, int bX, int bY, int searchCount)
         {
@@ -97,50 +110,155 @@ namespace AnimationImageAnalogy
 
             Tuple<int, int> patchA2Left;
             Tuple<int, int> patchA2Top;
-            for (int i = 0; i < searchCount; i++)
+
+            if(currentPrevMatches != null)
             {
-                int xRand = r.Next(patchIter, width - patchDimension);
-                int yRand = r.Next(patchIter, height - patchDimension);
+                Console.WriteLine("doing prev match stuff");
+                Tuple<int, int> currentPrevMatch = currentPrevMatches[bX, bY];
 
-                //if (width - xRand > patchDimension + 1 && height - yRand > patchDimension + 1)
+                Console.WriteLine(currentPrevMatch);
 
-                //Get the patch to the left of the current patch in imageA2
-                patchA2Left = new Tuple<int, int>(xRand - patchIter, yRand);
-                //Get teh patch to the top of the current patch in imageA2
-                patchA2Top = new Tuple<int, int>(xRand, yRand - patchIter);
+                //Calculate the bounds for the square we are searching in
+                int lowerXBound = currentPrevMatch.Item1 - COHERENCE_RADIUS;
+                int upperXBound = currentPrevMatch.Item1 + COHERENCE_RADIUS;
+                int lowerYBound = currentPrevMatch.Item2 - COHERENCE_RADIUS;
+                int upperYBound = currentPrevMatch.Item2 + COHERENCE_RADIUS;
 
-                Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
-
-                //Calculated the weighted SSD
-                int a1b1_val = ComputePatchValue(imageA1, imageB1, currentPatchA1, currentB,
-                    patchDimension, patchDimension);
-                int a2b2_val_left = 0;
-                if (patchB2Left != null)
+                //Make sure the bounds are within range of the image
+                if (lowerXBound - patchDimension < 0)
                 {
-                    a2b2_val_left = ComputePatchValue(imageA2, imageB2, patchA2Left, patchB2Left,
-                    patchDimension, patchDimension);
-                }
-                int a2b2_val_top = 0;
-                if(patchB2Top != null)
-                {
-                    a2b2_val_top = ComputePatchValue(imageA2, imageB2, patchA2Top, patchB2Top,
-                    patchDimension, patchDimension);
+                    lowerXBound = patchIter;
                 }
 
-                currentPatchVal = 5 * a1b1_val + a2b2_val_left + a2b2_val_top;
-
-                //Calculated the weighted SSD
-                //d = 5 * dist2(a, b) + dist2(apXLeft, bpXLeftT) + dist2(apYBot, bpYBotT);
-
-                if (currentPatchVal < bestPatchVal)
+                if(upperXBound + patchDimension >= width)
                 {
-                    bestPatchVal = currentPatchVal;
-                    bestPatchA1 = currentPatchA1;
+                    upperXBound = width - patchDimension - 1;
+                }
+
+                if(lowerYBound - patchDimension < 0)
+                {
+                    lowerYBound = patchIter;
+                }
+
+                if(upperYBound + patchDimension >= height)
+                {
+                    upperYBound = height - patchDimension - 1;
+                }
+
+                Console.WriteLine("width: " + width);
+                Console.WriteLine("height: " + height);
+                
+                Console.WriteLine("lowerx: " + lowerXBound);
+                Console.WriteLine("upperx: " + upperXBound);
+                Console.WriteLine("lowery: " + lowerYBound);
+                Console.WriteLine("uppery: " + upperYBound);
+
+                //Search the square for the best match
+                for (int i = lowerXBound; i <= upperXBound; i++)
+                {
+                    for(int j = lowerYBound; j <= upperYBound; j++)
+                    {
+                        Tuple<int, int> currentPatchA1 = new Tuple<int, int>(i,j);
+
+                        currentPatchVal = calculateWeightedSSD(imageB1, imageB2, currentB, patchB2Left, patchB2Top, 
+                            currentPatchA1, i, j);
+
+                        if (currentPatchVal < bestPatchVal)
+                        {
+                            bestPatchVal = currentPatchVal;
+                            bestPatchA1 = currentPatchA1;
+                        }
+                    }
+                }
+
+
+            } else
+            {
+                Console.WriteLine("doing normal behavior");
+
+                for (int i = 0; i < searchCount; i++)
+                {
+                    int xRand = r.Next(patchIter, width - patchDimension);
+                    int yRand = r.Next(patchIter, height - patchDimension);
+
+                    //if (width - xRand > patchDimension + 1 && height - yRand > patchDimension + 1)
+
+                    /*
+                    //Get the patch to the left of the current patch in imageA2
+                    patchA2Left = new Tuple<int, int>(xRand - patchIter, yRand);
+                    //Get teh patch to the top of the current patch in imageA2
+                    patchA2Top = new Tuple<int, int>(xRand, yRand - patchIter);
+                    */
+                    Tuple<int, int> currentPatchA1 = new Tuple<int, int>(xRand, yRand);
+
+                    currentPatchVal = calculateWeightedSSD(imageB1, imageB2, currentB, patchB2Left, patchB2Top,
+                        currentPatchA1, xRand, yRand);
+
+                    //Calculated the weighted SSD
+                    /*
+                    int a1b1_val = ComputePatchValue(imageA1, imageB1, currentPatchA1, currentB,
+                        patchDimension, patchDimension);
+                    int a2b2_val_left = 0;
+                    if (patchB2Left != null)
+                    {
+                        a2b2_val_left = ComputePatchValue(imageA2, imageB2, patchA2Left, patchB2Left,
+                        patchDimension, patchDimension);
+                    }
+                    int a2b2_val_top = 0;
+                    if(patchB2Top != null)
+                    {
+                        a2b2_val_top = ComputePatchValue(imageA2, imageB2, patchA2Top, patchB2Top,
+                        patchDimension, patchDimension);
+                    }
+
+                    currentPatchVal = PATCH_WEIGHT * a1b1_val + a2b2_val_left + a2b2_val_top;
+                    */
+
+
+                    //Calculated the weighted SSD
+                    //d = 5 * dist2(a, b) + dist2(apXLeft, bpXLeftT) + dist2(apYBot, bpYBotT);
+
+                    if (currentPatchVal < bestPatchVal)
+                    {
+                        bestPatchVal = currentPatchVal;
+                        bestPatchA1 = currentPatchA1;
+                    }
                 }
             }
 
             //Console.WriteLine("Best Patch: " + bestPatchA1.Item1 + " " + bestPatchA1.Item2);
             return bestPatchA1;
+        }
+
+        private int calculateWeightedSSD(Color[,] imageB1, Color[,] imageB2, Tuple<int,int> currentB, 
+            Tuple<int,int> patchB2Left, Tuple<int,int> patchB2Top, Tuple<int,int> currentPatchA1, int aX, int aY)
+        {
+            int currentPatchVal;
+
+            //Get the patch to the left of the current patch in imageA2
+            Tuple<int,int> patchA2Left = new Tuple<int, int>(aX - patchIter, aY);
+            //Get teh patch to the top of the current patch in imageA2
+            Tuple<int,int> patchA2Top = new Tuple<int, int>(aX, aY - patchIter);
+
+            //Calculated the weighted SSD
+            int a1b1_val = ComputePatchValue(imageA1, imageB1, currentPatchA1, currentB,
+                patchDimension, patchDimension);
+            int a2b2_val_left = 0;
+            if (patchB2Left != null)
+            {
+                a2b2_val_left = ComputePatchValue(imageA2, imageB2, patchA2Left, patchB2Left,
+                patchDimension, patchDimension);
+            }
+            int a2b2_val_top = 0;
+            if (patchB2Top != null)
+            {
+                a2b2_val_top = ComputePatchValue(imageA2, imageB2, patchA2Top, patchB2Top,
+                patchDimension, patchDimension);
+            }
+
+            currentPatchVal = PATCH_WEIGHT * a1b1_val + a2b2_val_left + a2b2_val_top;
+
+            return currentPatchVal;
         }
 
         /* Copies the patch with top left corner at indices designated by patchA from imageA2 to 
@@ -374,8 +492,8 @@ namespace AnimationImageAnalogy
             int width = imageB1.GetLength(0);
             int height = imageB1.GetLength(1);
             Color[,] imageB2 = new Color[width, height];
+            Tuple<int, int>[,] newPrevMatches = new Tuple<int, int>[width, height];
             Tuple<int, int> bestMatch = null;
-            Tuple<int, int> prevBestMatch = null;
 
             //TESTING TO MAKE SURE DIJKSTRA ACTUALLY WORKS
             int patchIterX = patchIter;
@@ -384,8 +502,8 @@ namespace AnimationImageAnalogy
             /*Iterate through patches finding a best match for each */
             for (int col = 0; col < width; col += patchIterX)
             {
-                //if (col > 20)
-                //    break;
+                if (col > 10)
+                    break;
                 //Make sure we're not out of column range
                 //if (col + patchDimension >= width)
                 //SOMETHING IS PROBABLY WRONG HERE SINCE IT SHOULD WORK WITH JUST PATCHDIMENSION
@@ -404,6 +522,7 @@ namespace AnimationImageAnalogy
 
                     //Find the best random patch, not completely random since it takes existing patches into account
                     bestMatch = BestRandomPatchNew(imageB1, imageB2, col, row, patchNum);
+                    newPrevMatches[col, row] = bestMatch;
 
                     //Copy the patch, first with horizontal overlap then with vertical overlap
                     Tuple<int,int> currentBPatch = new Tuple<int, int>(col, row);
@@ -413,6 +532,7 @@ namespace AnimationImageAnalogy
                     Utilities.print("Current patch index: " + col + ", " + row);
                 }
             }
+            currentPrevMatches = newPrevMatches;
             return imageB2;
         }
     }
