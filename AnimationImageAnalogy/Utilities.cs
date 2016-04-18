@@ -12,6 +12,8 @@ namespace AnimationImageAnalogy
     /* Provides various image related functions. */
     public static class Utilities
     {
+        public static bool CONSOLE = true;
+
         /* Creates a two dimensional array of colors representing the color
          * of each pixel in an image. The source image is given as a string. */
         public static Color[,] createImageArrayFromFile(string file)
@@ -85,6 +87,18 @@ namespace AnimationImageAnalogy
             int bVal = (int)((a.B * weight) + (b.B * (1 - weight)));
             Color average = Color.FromArgb(aVal, rVal, gVal, bVal);
             return average;
+        }
+
+        public static void print(string str)
+        {
+            if (CONSOLE)
+            {
+                Console.WriteLine(str);
+            }
+            else
+            {
+                Logger.Log(str);
+            }
         }
 
     }

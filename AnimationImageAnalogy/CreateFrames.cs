@@ -11,7 +11,6 @@ namespace AnimationImageAnalogy
 {
     class CreateFrames
     {
-        private PainterlyAnimationTool ui;
 
         /* Variables used to store data from the form. */
         private string pathA1;
@@ -26,11 +25,10 @@ namespace AnimationImageAnalogy
         private string[] framesA2;
         private string[] framesB1;
 
-        /* Constructor, takes in the UI form. */
-        public CreateFrames(PainterlyAnimationTool ui, string pathA1, string pathA2, string pathB1, string pathB2,
+        /* Constructor. */
+        public CreateFrames(string pathA1, string pathA2, string pathB1, string pathB2,
             int patchSize, int patchIter, int randAmount)
         {
-            this.ui = ui;
             this.pathA1 = pathA1;
             this.pathA2 = pathA2;
             this.pathB1 = pathB1;
@@ -38,8 +36,6 @@ namespace AnimationImageAnalogy
             this.patchSize = patchSize;
             this.patchIter = patchIter;
             this.randAmount = randAmount;
-            Logger.Log("wtf lol");
-            Logger.Log("heello?");
             iterFiles();
         }
 
@@ -69,8 +65,6 @@ namespace AnimationImageAnalogy
             copyFrame(framesA2[startKeyIndex]);
             copyFrame(framesA2[endKeyIndex]);
 
-            Logger.Log("wtf is happening");
-
             //Iterate through the in-between frames, creating a new frame for each
             foreach(string frame in framesB1)
             {
@@ -98,8 +92,8 @@ namespace AnimationImageAnalogy
                     copyFrame(framesA2[endKeyIndex]);
                 }
 
-                Logger.Log("LOL TEST");
-                Logger.Log("CREATING IN-BETWEEN FRAME: " + Path.GetFileName(frame));
+                Utilities.print("CREATING IN-BETWEEN FRAME: " + Path.GetFileName(frame));
+                
 
                 //FOR TESTING PURPOSES WE'RE JUST DOING ONE TO SEE IF WE GET THE SAME RESULTS USING THIS NEW SYSTEM
                 Color[,] imageFromStart = createImage(startAnalogy, frame);
@@ -129,7 +123,7 @@ namespace AnimationImageAnalogy
         private void copyFrame(string frameA2)
         {
             string frameName = Path.GetFileName(frameA2);
-            Logger.Log("COPYING KEYFRAME: " + frameName);
+            Utilities.print("COPYING KEYFRAME: " + frameName);
             File.Copy(frameA2, Path.Combine(pathB2, frameName));
         }
 
@@ -139,7 +133,7 @@ namespace AnimationImageAnalogy
             //Image source pair data
             Color[,] imageA1 = Utilities.createImageArrayFromFile(frameA1);
             Color[,] imageA2 = Utilities.createImageArrayFromFile(frameA2);
-            return new ImageAnalogy(imageA1, imageA2, patchSize, patchIter, ui);
+            return new ImageAnalogy(imageA1, imageA2, patchSize, patchIter);
         }
 
         /* Creates an animation frame using the provided analogy, image, and parameters */
@@ -153,7 +147,7 @@ namespace AnimationImageAnalogy
         /* Copy the final B2 image to the B2 output path */
         private void writeImage(Color[,] imageB2, string frameName)
         {
-            Logger.Log("SAVING IN-BETWEEN FRAME: " + Path.GetFileName(frameName));
+            Utilities.print("SAVING IN-BETWEEN FRAME: " + Path.GetFileName(frameName));
             string newFilePath = Path.Combine(pathB2, Path.GetFileName(frameName));
             Utilities.createFileFromImageArray(imageB2, newFilePath);
         }
