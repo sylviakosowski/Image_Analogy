@@ -20,6 +20,7 @@ namespace AnimationImageAnalogy
         private int patchSize;
         private int patchIter;
         private int randAmount;
+        private int coherenceRadius;
 
         private string[] framesA1;
         private string[] framesA2;
@@ -27,7 +28,7 @@ namespace AnimationImageAnalogy
 
         /* Constructor. */
         public CreateFrames(string pathA1, string pathA2, string pathB1, string pathB2,
-            int patchSize, int patchIter, int randAmount)
+            int patchSize, int patchIter, int randAmount, int coherenceRadius)
         {
             this.pathA1 = pathA1;
             this.pathA2 = pathA2;
@@ -36,6 +37,7 @@ namespace AnimationImageAnalogy
             this.patchSize = patchSize;
             this.patchIter = patchIter;
             this.randAmount = randAmount;
+            this.coherenceRadius = coherenceRadius;
             iterFiles();
         }
 
@@ -133,7 +135,7 @@ namespace AnimationImageAnalogy
             //Image source pair data
             Color[,] imageA1 = Utilities.createImageArrayFromFile(frameA1);
             Color[,] imageA2 = Utilities.createImageArrayFromFile(frameA2);
-            return new ImageAnalogy(imageA1, imageA2, patchSize, patchIter);
+            return new ImageAnalogy(imageA1, imageA2, patchSize, patchIter, coherenceRadius);
         }
 
         /* Creates an animation frame using the provided analogy, image, and parameters */

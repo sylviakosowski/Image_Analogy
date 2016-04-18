@@ -90,7 +90,7 @@ namespace AnimationImageAnalogy
         {
             //TODO: ADD ERROR CHECKING FOR IF THE USER DIDNT CORRECTLY PUT IN INPUT
             CreateFrames cf = new CreateFrames(pathA1Text.Text, pathA2Text.Text, pathB1Text.Text, pathB2Text.Text, 
-                Int32.Parse(sizeText.Text), Int32.Parse(iterText.Text), Int32.Parse(randText.Text));
+                Int32.Parse(sizeText.Text), Int32.Parse(iterText.Text), Int32.Parse(randText.Text), 10);
         }
 
         /* Log stuff in the output box. */

@@ -27,18 +27,19 @@ namespace AnimationImageAnalogy
 
         //Determines the radius we will look in for coherence matching
         //i.e. x patches in every direction, for a total of (2x)^2
-        private int COHERENCE_RADIUS = 10;
+        private int coherenceRadius;
 
         //Determines the amount of randomness we allow when finding the best match with coherence
         private float RANDOM_PERCENT = 0.25f;
 
         /* Constructor */
-        public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension, int patchIter) 
+        public ImageAnalogy(Color[,] imageA1, Color[,] imageA2, int patchDimension, int patchIter, int coherenceRadius) 
         {
             this.imageA1 = imageA1;
             this.imageA2 = imageA2;
             this.patchDimension = patchDimension;
             this.patchIter = patchIter;
+            this.coherenceRadius = coherenceRadius;
         }
 
         /* Compute patch value
@@ -113,16 +114,16 @@ namespace AnimationImageAnalogy
 
             if(currentPrevMatches != null)
             {
-                Console.WriteLine("doing prev match stuff");
+                //Console.WriteLine("doing prev match stuff");
                 Tuple<int, int> currentPrevMatch = currentPrevMatches[bX, bY];
 
                 Console.WriteLine(currentPrevMatch);
 
                 //Calculate the bounds for the square we are searching in
-                int lowerXBound = currentPrevMatch.Item1 - COHERENCE_RADIUS;
-                int upperXBound = currentPrevMatch.Item1 + COHERENCE_RADIUS;
-                int lowerYBound = currentPrevMatch.Item2 - COHERENCE_RADIUS;
-                int upperYBound = currentPrevMatch.Item2 + COHERENCE_RADIUS;
+                int lowerXBound = currentPrevMatch.Item1 - (coherenceRadius * patchDimension);
+                int upperXBound = currentPrevMatch.Item1 + (coherenceRadius * patchDimension);
+                int lowerYBound = currentPrevMatch.Item2 - (coherenceRadius * patchDimension);
+                int upperYBound = currentPrevMatch.Item2 + (coherenceRadius * patchDimension);
 
                 //Make sure the bounds are within range of the image
                 if (lowerXBound - patchDimension < 0)
@@ -145,18 +146,18 @@ namespace AnimationImageAnalogy
                     upperYBound = height - patchDimension - 1;
                 }
 
-                Console.WriteLine("width: " + width);
-                Console.WriteLine("height: " + height);
+                //Console.WriteLine("width: " + width);
+                //Console.WriteLine("height: " + height);
                 
-                Console.WriteLine("lowerx: " + lowerXBound);
-                Console.WriteLine("upperx: " + upperXBound);
-                Console.WriteLine("lowery: " + lowerYBound);
-                Console.WriteLine("uppery: " + upperYBound);
+                //Console.WriteLine("lowerx: " + lowerXBound);
+                //Console.WriteLine("upperx: " + upperXBound);
+                //Console.WriteLine("lowery: " + lowerYBound);
+                //Console.WriteLine("uppery: " + upperYBound);
 
                 //Search the square for the best match
-                for (int i = lowerXBound; i <= upperXBound; i++)
+                for (int i = lowerXBound; i <= upperXBound; i += patchIter)
                 {
-                    for(int j = lowerYBound; j <= upperYBound; j++)
+                    for(int j = lowerYBound; j <= upperYBound; j += patchIter)
                     {
                         Tuple<int, int> currentPatchA1 = new Tuple<int, int>(i,j);
 
@@ -174,7 +175,7 @@ namespace AnimationImageAnalogy
 
             } else
             {
-                Console.WriteLine("doing normal behavior");
+                //Console.WriteLine("doing normal behavior");
 
                 for (int i = 0; i < searchCount; i++)
                 {
@@ -502,8 +503,8 @@ namespace AnimationImageAnalogy
             /*Iterate through patches finding a best match for each */
             for (int col = 0; col < width; col += patchIterX)
             {
-                if (col > 10)
-                    break;
+                //if (col > 10)
+                //    break;
                 //Make sure we're not out of column range
                 //if (col + patchDimension >= width)
                 //SOMETHING IS PROBABLY WRONG HERE SINCE IT SHOULD WORK WITH JUST PATCHDIMENSION
